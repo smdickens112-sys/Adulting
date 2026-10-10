@@ -1,0 +1,1792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Adulting</title>
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a2332">
+<!-- iOS PWA support -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Adulting">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+:root{
+  --sb:#1a2332;--sb-h:#263548;--acc:#3b82f6;--acc-l:#eff6ff;
+  --txt:#1e293b;--txt2:#64748b;--txt3:#94a3b8;
+  --bdr:#e2e8f0;--bg:#f8fafc;--card:#fff;
+  --red:#ef4444;--green:#10b981;--amber:#f59e0b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);display:flex;height:100vh;overflow:hidden}
+
+/* SIDEBAR */
+#sb{width:222px;background:var(--sb);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+#sb-top{padding:20px 16px 14px;border-bottom:1px solid rgba(255,255,255,.08)}
+#sb-top h1{color:#fff;font-size:20px;font-weight:800;letter-spacing:-.03em}
+#sb-top .tag{color:var(--txt3);font-size:10.5px;margin-top:2px}
+#sb-score{padding:10px 16px 6px}
+.sc-lbl{color:var(--txt3);font-size:9.5px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
+.sc-bar{height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
+.sc-fill{height:100%;background:var(--acc);border-radius:2px;transition:width .4s}
+.sc-pct{color:#fff;font-size:12px;font-weight:600;margin-top:3px}
+#nav{flex:1;padding:6px 0}
+.nv{display:flex;align-items:center;gap:9px;padding:8px 16px;color:#94a3b8;cursor:pointer;font-size:13px;border-left:3px solid transparent;transition:all .12s;user-select:none}
+.nv:hover{background:var(--sb-h);color:#e2e8f0}
+.nv.active{background:rgba(59,130,246,.13);color:#fff;border-left-color:var(--acc)}
+.nv .ni{width:16px;height:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center}.nv .ni svg{width:16px;height:16px}
+.nv-sep{height:1px;background:rgba(255,255,255,.07);margin:5px 0}
+#sb-foot{padding:10px 16px;border-top:1px solid rgba(255,255,255,.08)}
+.sb-btn{width:100%;padding:6px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:5px;color:#94a3b8;font-size:11px;cursor:pointer;margin-bottom:5px;text-align:center;font-family:inherit}
+.sb-btn:hover{background:rgba(255,255,255,.13);color:#e2e8f0}
+
+/* MAIN */
+#main{flex:1;overflow-y:auto;padding:26px 30px}
+.pg-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:12px}
+.pg-hd-l h2{font-size:20px;font-weight:700}
+.pg-hd-l p{color:var(--txt2);font-size:13px;margin-top:2px}
+.pg-hd-r{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.btn-edit{padding:7px 14px;background:var(--card);color:var(--txt2);border:1.5px solid var(--bdr);border-radius:7px;font-size:13px;cursor:pointer;font-family:inherit}
+.btn-edit:hover{border-color:var(--acc);color:var(--acc)}
+.btn-done{padding:7px 16px;background:var(--green);color:#fff;border:none;border-radius:7px;font-size:13px;cursor:pointer;font-family:inherit;font-weight:600}
+.btn-done:hover{background:#059669}
+.btn-zip{padding:7px 13px;background:var(--acc);color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit}
+.btn-zip:hover{background:#2563eb}
+.edit-banner{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:9px 14px;font-size:12.5px;color:#92400e;margin-bottom:14px}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:10px;margin-bottom:11px;overflow:hidden}
+.card.custom-card{border:2px dashed #bfdbfe;background:#fafcff}
+.card.vehicle-card{border-left:4px solid var(--acc)}
+.ch{padding:12px 15px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.ch h3{font-size:13.5px;font-weight:600}
+.ch-r{display:flex;align-items:center;gap:8px}
+.ch-pct{font-size:10.5px;color:var(--txt3)}
+.ch-pct.ok{color:var(--green);font-weight:600}
+.chev{color:var(--txt3);font-size:10px;transition:transform .2s}
+.ch.collapsed .chev{transform:rotate(-90deg)}
+.cprog{height:2px;background:var(--bdr)}
+.cprog-fill{height:100%;background:var(--acc);transition:width .3s}
+.cprog-fill.full{background:var(--green)}
+.cb{padding:15px}
+.cb.hidden{display:none}
+
+/* INNER CARDS */
+.inner-card{background:var(--bg);border:1px solid var(--bdr);border-radius:8px;margin-bottom:8px;overflow:hidden}
+.ich{padding:10px 14px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;background:var(--card)}
+.ich h4{font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
+.ich-r{display:flex;align-items:center;gap:6px}
+.icb{padding:14px;background:var(--card)}
+.icb.hidden{display:none}
+.inner-chev{color:var(--txt3);font-size:10px;transition:transform .2s}
+.ich.collapsed .inner-chev{transform:rotate(-90deg)}
+.card-name-input{font-size:13.5px;font-weight:600;border:none;background:transparent;color:var(--txt);font-family:inherit;padding:0;min-width:80px;cursor:text}
+.card-name-input:focus{outline:1px dashed var(--acc);border-radius:3px;padding:0 3px}
+.inner-name-input{font-size:13px;font-weight:600;border:none;background:transparent;color:var(--txt);font-family:inherit;padding:0;min-width:60px;cursor:text}
+.inner-name-input:focus{outline:1px dashed var(--acc);border-radius:3px;padding:0 2px}
+
+/* VEHICLE NAME DISPLAY */
+.veh-reg-tag{font-size:11px;background:var(--bg);border:1px solid var(--bdr);border-radius:4px;padding:2px 7px;color:var(--txt2);font-weight:600;letter-spacing:.04em;margin-left:6px;vertical-align:middle}
+
+/* VIEW MODE */
+.vfg{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px;margin-bottom:14px}
+.vfld{display:flex;flex-direction:column;gap:3px}
+.vfld label{font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--txt3)}
+.vval{font-size:14px;color:var(--txt);padding:2px 0}
+.vval.empty{color:var(--txt3);font-style:italic;font-size:13px}
+.vnotes-wrap{margin-bottom:12px}
+.vnotes-wrap label{font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--txt3);display:block;margin-bottom:5px}
+.vnotes{font-size:13.5px;color:var(--txt2);line-height:1.6;white-space:pre-wrap}
+.vwebsite{margin-bottom:14px}
+.btn-open{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:var(--acc-l);color:var(--acc);border:1px solid #bfdbfe;border-radius:6px;font-size:12.5px;text-decoration:none;font-weight:500}
+.btn-open:hover{background:var(--acc);color:#fff}
+
+/* EDIT MODE FIELDS */
+.url-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:9px 11px;background:#f8fbff;border:1px solid #dbeafe;border-radius:7px}
+.url-row label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--acc);flex-shrink:0;width:110px}
+.url-inp{flex:1;border:none;background:transparent;font-size:13px;color:var(--txt);font-family:inherit;min-width:0}
+.url-inp:focus{outline:none}
+.url-inp::placeholder{color:var(--txt3)}
+.btn-url-open{padding:5px 10px;background:var(--acc);color:#fff;border:none;border-radius:5px;font-size:11.5px;cursor:pointer;flex-shrink:0;text-decoration:none}
+.btn-url-open:hover{background:#2563eb}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:11px}
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld label{font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--txt3)}
+.fld input{border:1px solid var(--bdr);border-radius:5px;padding:7px 9px;font-size:13px;color:var(--txt);background:var(--bg);font-family:inherit;transition:all .15s}
+.fld input:focus{outline:none;border-color:var(--acc);background:#fff;box-shadow:0 0 0 2px rgba(59,130,246,.08)}
+.fld input::placeholder{color:var(--txt3)}
+.cfields{margin-bottom:11px}
+.cfields-lbl{font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--txt3);display:block;margin-bottom:6px}
+.cf-row{display:flex;gap:7px;align-items:center;margin-bottom:6px}
+.cf-lbl-inp{flex:0 0 115px;border:1px solid var(--bdr);border-radius:5px;padding:6px 8px;font-size:11px;color:var(--txt2);background:var(--bg);font-family:inherit;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.cf-val-inp{flex:1;border:1px solid var(--bdr);border-radius:5px;padding:6px 8px;font-size:13px;color:var(--txt);background:var(--bg);font-family:inherit}
+.cf-lbl-inp:focus,.cf-val-inp:focus{outline:none;border-color:var(--acc);background:#fff}
+.btn-icon{background:none;border:none;cursor:pointer;color:#ccc;font-size:15px;padding:2px;line-height:1;flex-shrink:0}
+.btn-icon:hover{color:var(--red)}
+.nw{margin-bottom:11px}
+.nw label{font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--txt3);display:block;margin-bottom:4px}
+.nw textarea{width:100%;border:1px solid var(--bdr);border-radius:5px;padding:7px 9px;font-size:13px;color:var(--txt);background:var(--bg);resize:vertical;min-height:60px;font-family:inherit;transition:all .15s}
+.nw textarea:focus{outline:none;border-color:var(--acc);background:#fff;box-shadow:0 0 0 2px rgba(59,130,246,.08)}
+
+/* FILES */
+.fw .fw-lbl{font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--txt3);display:block;margin-bottom:5px}
+.dz{border:2px dashed var(--bdr);border-radius:7px;padding:11px;text-align:center;cursor:pointer;color:var(--txt2);font-size:12px;transition:all .15s}
+.dz:hover,.dz.over{border-color:var(--acc);background:var(--acc-l);color:var(--acc)}
+.dz input{display:none}
+.flist{margin-top:7px;display:flex;flex-direction:column;gap:5px}
+.fi{display:flex;align-items:center;gap:7px;padding:6px 9px;background:var(--bg);border:1px solid var(--bdr);border-radius:5px;font-size:12px}
+.fi .fn{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.fi .fsz{color:var(--txt3);font-size:10.5px;flex-shrink:0}
+.btn-dl{background:none;border:none;color:var(--acc);cursor:pointer;font-size:11.5px;padding:1px 5px;flex-shrink:0}
+.btn-del{background:none;border:none;color:#ccc;cursor:pointer;font-size:15px;padding:1px 3px;flex-shrink:0;line-height:1}
+.btn-del:hover{color:var(--red)}
+
+/* PAGE HEADER ICON */
+.pg-icon{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-right:8px;vertical-align:middle;color:var(--acc)}.pg-icon svg{width:22px;height:22px}
+h2{display:flex;align-items:center}
+
+/* SELECT (frequency dropdown) */
+.fld select{width:100%;padding:8px 10px;border:1.5px solid var(--bdr);border-radius:7px;background:var(--bg);color:var(--txt);font-family:inherit;font-size:13.5px;outline:none;appearance:none;-webkit-appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px}
+.fld select:focus{border-color:var(--acc)}
+
+/* SEARCH */
+#srch-zone{position:sticky;top:0;z-index:20;background:var(--bg);padding:0 0 12px;margin-bottom:2px}
+.srch-wrap{display:flex;align-items:center;gap:9px;background:var(--card);border:1.5px solid var(--bdr);border-radius:10px;padding:0 12px;transition:border-color .15s}
+.srch-wrap:focus-within{border-color:var(--acc)}
+.srch-wrap .si{font-size:15px;color:var(--txt3);flex-shrink:0}
+#srch{flex:1;border:none;background:transparent;font-size:14px;color:var(--txt);font-family:inherit;padding:11px 0;outline:none}
+#srch::placeholder{color:var(--txt3)}
+#srch-results{background:var(--card);border:1px solid var(--bdr);border-radius:10px;margin-top:4px;overflow:hidden;box-shadow:0 4px 18px rgba(0,0,0,.08)}
+#srch-results.sr-hidden{display:none}
+.sr-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--bdr)}
+.sr-item:last-child{border:none}
+.sr-item:hover{background:var(--bg)}
+.sr-icon{width:18px;height:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center}.sr-icon svg{width:18px;height:18px}
+.sr-where{font-size:11px;color:var(--txt3);margin-bottom:2px}
+.sr-val{font-size:13px;color:var(--txt)}
+.sr-lbl{color:var(--txt2);font-size:11.5px}
+.sr-empty{padding:14px;font-size:13px;color:var(--txt3);text-align:center}
+
+/* RENEWAL WIDGET */
+.ren-card{background:var(--card);border:1px solid var(--bdr);border-radius:10px;margin-bottom:18px;overflow:hidden}
+.ren-hd{padding:11px 15px;border-bottom:1px solid var(--bdr);font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px}
+.ren-row{display:flex;align-items:center;padding:10px 15px;border-bottom:1px solid var(--bdr);gap:10px;cursor:pointer}
+.ren-row:last-child{border:none}
+.ren-row:hover{background:var(--bg)}
+.ren-info{flex:1;min-width:0}
+.ren-name{font-size:13px;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ren-sub{font-size:11px;color:var(--txt3);margin-top:1px}
+.ren-badge{flex-shrink:0;font-size:11px;font-weight:600;padding:3px 8px;border-radius:5px}
+.ren-badge.soon{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa}
+.ren-badge.urgent{background:#fff1f2;color:#be123c;border:1px solid #fecdd3}
+.ren-badge.ok{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0}
+.ren-date{font-size:12px;color:var(--txt2)}
+
+/* VEHICLE DATE TAGS */
+.veh-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.veh-dt{font-size:10.5px;font-weight:500;padding:2px 7px;border-radius:4px}
+.veh-dt.ok{background:#f0fdf4;color:#15803d}
+.veh-dt.soon{background:#fff7ed;color:#c2410c}
+.veh-dt.urgent{background:#fff1f2;color:#be123c}
+.veh-model{font-size:12px;color:var(--txt3);margin-top:2px}
+
+/* HIDDEN CARD (edit mode) */
+.card-hidden{opacity:.45;border-style:dashed}
+.card-hidden .ch{cursor:default}
+.btn-restore{padding:4px 10px;background:var(--bg);border:1px solid var(--bdr);border-radius:5px;font-size:11.5px;color:var(--txt2);cursor:pointer;font-family:inherit}
+.btn-restore:hover{border-color:var(--acc);color:var(--acc)}
+.btn-hide-sub{padding:3px 8px;background:none;border:1px solid var(--bdr);border-radius:5px;font-size:11px;color:var(--txt3);cursor:pointer;font-family:inherit;flex-shrink:0}
+.btn-hide-sub:hover{border-color:var(--red);color:var(--red)}
+
+/* ADD BUTTONS */
+.btn-add{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:7px;border:1px dashed var(--bdr);border-radius:6px;background:none;color:var(--txt2);font-size:12.5px;cursor:pointer;margin-top:3px;font-family:inherit}
+.btn-add:hover{border-color:var(--acc);color:var(--acc);background:var(--acc-l)}
+.btn-add-sec{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:11px;border:2px dashed #bfdbfe;border-radius:9px;background:#fafcff;color:#93c5fd;font-size:13px;cursor:pointer;margin-top:10px;font-family:inherit}
+.btn-add-sec:hover{border-color:var(--acc);color:var(--acc);background:var(--acc-l)}
+.btn-add-inner{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:8px;border:1px dashed var(--bdr);border-radius:7px;background:none;color:var(--txt3);font-size:12.5px;cursor:pointer;margin-top:6px;font-family:inherit}
+.btn-add-inner:hover{border-color:var(--acc);color:var(--acc);background:var(--acc-l)}
+
+/* DASHBOARD */
+.dash-hero{background:linear-gradient(135deg,#1e3a5f,#1a2332);border-radius:12px;padding:26px;margin-bottom:18px;color:#fff;display:flex;align-items:center;gap:22px}
+.dash-pct{font-size:54px;font-weight:800;letter-spacing:-.04em;line-height:1}
+.dash-pct sup{font-size:22px;font-weight:400;opacity:.6}
+.dash-info h3{font-size:14.5px;font-weight:600;margin-bottom:3px}
+.dash-info p{font-size:12.5px;opacity:.65}
+.dash-bar{margin-top:10px;height:5px;background:rgba(255,255,255,.15);border-radius:3px;overflow:hidden;width:210px}
+.dash-bar-fill{height:100%;background:var(--acc);border-radius:3px;transition:width .5s}
+.sec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:10px;margin-bottom:18px}
+.sec-tile{background:var(--card);border:1px solid var(--bdr);border-radius:9px;padding:13px;cursor:pointer;transition:border-color .15s}
+.sec-tile:hover{border-color:var(--acc)}
+.st-icon{width:26px;height:26px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;color:var(--acc)}.st-icon svg{width:26px;height:26px}
+.st-name{font-size:12px;font-weight:600;margin-bottom:6px;color:var(--txt)}
+.st-bar{height:3px;background:var(--bdr);border-radius:2px;overflow:hidden;margin-bottom:4px}
+.st-fill{height:100%;border-radius:2px;transition:width .3s}
+.st-pct{font-size:10.5px;color:var(--txt3)}
+.gaps h3{font-size:13.5px;font-weight:600;margin-bottom:9px}
+.gap-item{display:flex;align-items:center;gap:8px;padding:8px 11px;background:var(--card);border:1px solid var(--bdr);border-radius:7px;margin-bottom:6px;cursor:pointer;font-size:12.5px;transition:border-color .15s}
+.gap-item:hover{border-color:var(--acc)}
+.gap-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* EMERGENCY */
+.preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:11px}
+.pnum{background:#fff5f5;border:1px solid #fecaca;border-left:3px solid var(--red);border-radius:7px;padding:9px 12px}
+.pnum .pl{font-size:10.5px;color:var(--txt2);margin-bottom:2px}
+.pnum .pv{font-size:18px;font-weight:700;color:#dc2626}
+.vem-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--bdr)}
+.vem-row:last-child{border:none}
+.vem-label{font-size:13px;color:var(--txt2)}
+.vem-number{font-size:15px;font-weight:600;color:var(--txt)}
+
+/* DYNAMIC ROWS */
+.drow{position:relative;background:var(--bg);border:1px solid var(--bdr);border-radius:7px;padding:11px;padding-right:30px;display:grid;gap:9px;grid-template-columns:1fr 1fr;margin-bottom:7px}
+.drow .rd{position:absolute;top:8px;right:8px;background:none;border:none;color:#ccc;cursor:pointer;font-size:15px;line-height:1}
+.drow .rd:hover{color:var(--red)}
+
+/* SETTINGS */
+.set-sec{margin-bottom:22px}
+.set-sec h3{font-size:13px;font-weight:600;margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--bdr)}
+.tog-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bdr)}
+.tog-row:last-child{border:none}
+.tog-lbl{font-size:13px;display:flex;align-items:center;gap:7px}
+.tog{position:relative;width:34px;height:19px;cursor:pointer;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0;position:absolute}
+.tog-sl{position:absolute;inset:0;background:#cbd5e1;border-radius:9px;transition:.2s}
+.tog-sl:before{content:'';position:absolute;width:13px;height:13px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.tog input:checked+.tog-sl{background:var(--acc)}
+.tog input:checked+.tog-sl:before{transform:translateX(15px)}
+.q-card{background:var(--card);border:1px solid var(--bdr);border-radius:9px;padding:16px;margin-bottom:10px}
+.q-card h4{font-size:13px;font-weight:600;margin-bottom:9px}
+.q-opts{display:flex;flex-wrap:wrap;gap:6px}
+.q-opt{padding:6px 13px;border:1.5px solid var(--bdr);border-radius:18px;font-size:12.5px;cursor:pointer;transition:all .15s;background:var(--bg);font-family:inherit}
+.q-opt.sel{border-color:var(--acc);background:var(--acc-l);color:var(--acc);font-weight:500}
+.btn-pri{padding:8px 16px;background:var(--acc);color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit;margin-top:4px}
+.btn-pri:hover{background:#2563eb}
+.btn-danger{padding:8px 16px;background:var(--red);color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit}
+
+/* ONBOARDING */
+#ob{position:fixed;inset:0;background:rgba(15,23,42,.75);display:flex;align-items:center;justify-content:center;z-index:100}
+#ob.hidden{display:none}
+.ob-box{background:#fff;border-radius:14px;padding:30px;max-width:460px;width:90%}
+.ob-box h2{font-size:21px;font-weight:800;margin-bottom:3px}
+.ob-box .ob-sub{color:var(--txt2);font-size:13px;margin-bottom:20px}
+.ob-step{display:none}.ob-step.active{display:block}
+.ob-q{font-size:14px;font-weight:600;margin-bottom:9px}
+.ob-opts{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}
+.ob-opt{padding:8px 15px;border:2px solid var(--bdr);border-radius:8px;font-size:13px;cursor:pointer;transition:all .15s;background:var(--bg);font-family:inherit}
+.ob-opt.sel{border-color:var(--acc);background:var(--acc-l);color:var(--acc);font-weight:500}
+.ob-nav{display:flex;justify-content:flex-end}
+.ob-dots{display:flex;gap:5px;justify-content:center;margin-top:12px}
+.ob-dot{width:6px;height:6px;border-radius:50%;background:var(--bdr);transition:background .2s}
+.ob-dot.on{background:var(--acc)}
+
+/* CUSTOM PROMPT MODAL */
+#cprompt{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;z-index:200;padding-bottom:env(safe-area-inset-bottom,0)}
+#cprompt.hidden{display:none}
+@media(min-width:480px){#cprompt{align-items:center}}
+.cp-box{background:var(--card);border-radius:16px 16px 0 0;padding:22px 20px;width:100%;max-width:440px}
+@media(min-width:480px){.cp-box{border-radius:14px;margin:0 16px}}
+.cp-box h4{font-size:15px;font-weight:700;margin-bottom:14px;color:var(--txt)}
+.cp-box input{width:100%;border:1.5px solid var(--bdr);border-radius:8px;padding:11px 12px;font-size:16px;color:var(--txt);background:var(--bg);font-family:inherit;margin-bottom:12px}
+.cp-box input:focus{outline:none;border-color:var(--acc)}
+.cp-btns{display:flex;gap:8px;justify-content:flex-end}
+.cp-cancel{padding:9px 18px;background:none;border:1.5px solid var(--bdr);border-radius:8px;font-size:14px;color:var(--txt2);cursor:pointer;font-family:inherit}
+.cp-ok{padding:9px 18px;background:var(--acc);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+
+#toast{position:fixed;bottom:74px;right:16px;background:#1e293b;color:#fff;padding:8px 14px;border-radius:16px;font-size:12px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+#toast.show{opacity:1}
+
+/* BOTTOM NAV (mobile) */
+#bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:62px;background:var(--card);border-top:1.5px solid var(--bdr);z-index:50;padding-bottom:env(safe-area-inset-bottom,0)}
+.bn-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px;color:var(--txt2);cursor:pointer;border:none;background:none;font-family:inherit;padding:6px 0;min-height:44px}
+.bn-tab.active{color:var(--acc)}
+.bn-tab .bni{width:22px;height:22px;display:flex;align-items:center;justify-content:center}.bn-tab .bni svg{width:22px;height:22px}
+
+/* MORE OVERLAY */
+#more-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:60}
+#more-ov.show{display:block}
+#more-sheet{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-radius:18px 18px 0 0;padding:10px 0 calc(70px + env(safe-area-inset-bottom,0));max-height:78vh;overflow-y:auto;z-index:70;transform:translateY(100%);transition:transform .22s ease}
+#more-sheet.show{transform:translateY(0)}
+.ms-handle{width:36px;height:4px;background:var(--bdr);border-radius:2px;margin:0 auto 14px}
+.ms-item{display:flex;align-items:center;gap:12px;padding:13px 20px;color:var(--txt);font-size:14px;cursor:pointer;border:none;background:none;font-family:inherit;width:100%;text-align:left}
+.ms-item:hover,.ms-item:active{background:var(--bg)}
+.ms-item .ms-icon{width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0}.ms-item .ms-icon svg{width:20px;height:20px}
+.ms-item.active{color:var(--acc);font-weight:600}
+
+/* MOBILE RESPONSIVE */
+@media(max-width:640px){
+  body{padding-bottom:62px}
+  #sb{display:none}
+  #bottom-nav{display:flex}
+  #main{padding:16px 14px}
+  .pg-hd-l h2{font-size:17px}
+  .pg-hd-l p{font-size:12px}
+  .dash-hero{padding:16px;gap:14px;flex-wrap:wrap}
+  .dash-pct{font-size:38px}
+  .dash-bar{width:100%}
+  .sec-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+  .fg,.vfg{grid-template-columns:1fr}
+  .drow{grid-template-columns:1fr}
+  .preset-grid{grid-template-columns:1fr}
+  .url-row{flex-wrap:wrap;gap:6px}
+  .url-row label{width:auto}
+  .btn-edit,.btn-done{padding:8px 12px;font-size:13px;min-height:44px}
+  .btn-zip{padding:8px 11px;min-height:44px}
+  .fld input,.nw textarea{font-size:16px}
+  .ch{padding:14px 15px;min-height:44px}
+  .ich{padding:12px 14px;min-height:44px}
+  #toast{bottom:74px}
+  .btn-zip{display:none}
+  .pg-hd{flex-wrap:wrap}
+  .pg-hd-r{margin-left:auto}
+}
+</style>
+</head>
+<body>
+<div id="sb">
+  <div id="sb-top"><h1>Adulting</h1><div class="tag">Life admin, sorted</div></div>
+  <div id="sb-score">
+    <div class="sc-lbl">Adulting score</div>
+    <div class="sc-bar"><div class="sc-fill" id="sc-fill" style="width:0%"></div></div>
+    <div class="sc-pct" id="sc-pct">0%</div>
+  </div>
+  <nav id="nav"></nav>
+  <div id="sb-foot">
+    <button class="sb-btn" onclick="exportBackup()">⬇ Export backup</button>
+    <button class="sb-btn" onclick="triggerImport()">⬆ Import backup</button>
+    <input type="file" id="imp-inp" accept=".json" style="display:none" onchange="importBackup(event)">
+  </div>
+</div>
+<div id="main"></div>
+
+<div id="ob">
+  <div class="ob-box">
+    <h2>Welcome to Adulting 👋</h2>
+    <div class="ob-sub">A few quick questions to personalise your hub.</div>
+    <div class="ob-step active" id="ob-0">
+      <div class="ob-q">What's your living situation?</div>
+      <div class="ob-opts">
+        <button class="ob-opt" onclick="obPick(0,'own',this)">🏠 Own home</button>
+        <button class="ob-opt" onclick="obPick(0,'rent',this)">🔑 Renting</button>
+        <button class="ob-opt" onclick="obPick(0,'other',this)">👨‍👩‍👧 Living with family</button>
+      </div>
+    </div>
+    <div class="ob-step" id="ob-1">
+      <div class="ob-q">Do you have a car or vehicle?</div>
+      <div class="ob-opts">
+        <button class="ob-opt" onclick="obPick(1,'yes',this)">🚗 Yes</button>
+        <button class="ob-opt" onclick="obPick(1,'no',this)">✕ No</button>
+      </div>
+    </div>
+    <div class="ob-step" id="ob-2">
+      <div class="ob-q">Do you have pets?</div>
+      <div class="ob-opts">
+        <button class="ob-opt" onclick="obPick(2,'yes',this)">🐾 Yes</button>
+        <button class="ob-opt" onclick="obPick(2,'no',this)">✕ No</button>
+      </div>
+    </div>
+    <div class="ob-step" id="ob-3">
+      <div class="ob-q">Do you have children?</div>
+      <div class="ob-opts">
+        <button class="ob-opt" onclick="obPick(3,'yes',this)">👶 Yes</button>
+        <button class="ob-opt" onclick="obPick(3,'no',this)">✕ No</button>
+      </div>
+    </div>
+    <div class="ob-nav"><button class="btn-pri" id="ob-btn" onclick="obNext()">Next →</button></div>
+    <div class="ob-dots">
+      <div class="ob-dot on" id="od-0"></div><div class="ob-dot" id="od-1"></div>
+      <div class="ob-dot" id="od-2"></div><div class="ob-dot" id="od-3"></div>
+    </div>
+  </div>
+</div>
+<div id="toast">✓ Saved</div>
+
+<div id="bottom-nav">
+  <button class="bn-tab" id="bn-dashboard" onclick="go('dashboard')"><span class="bni" id="bni-dashboard"></span>Dashboard</button>
+  <button class="bn-tab" id="bn-home" onclick="go('home')"><span class="bni" id="bni-home"></span>Home</button>
+  <button class="bn-tab" id="bn-insurance" onclick="go('insurance')"><span class="bni" id="bni-insurance"></span>Insurance</button>
+  <button class="bn-tab" id="bn-emergency" onclick="go('emergency')"><span class="bni" id="bni-emergency"></span>Emergency</button>
+  <button class="bn-tab" id="bn-more" onclick="openMore()"><span class="bni" id="bni-more"></span>More</button>
+</div>
+
+<div id="cprompt" class="hidden" onclick="cpClose()">
+  <div class="cp-box" onclick="event.stopPropagation()">
+    <h4 id="cp-title">Name</h4>
+    <input id="cp-inp" type="text" autocomplete="off" onkeydown="if(event.key==='Enter')cpOk()">
+    <div class="cp-btns">
+      <button class="cp-cancel" onclick="cpClose()">Cancel</button>
+      <button class="cp-ok" onclick="cpOk()">OK</button>
+    </div>
+  </div>
+</div>
+
+<div id="more-ov" onclick="closeMore()"></div>
+<div id="more-sheet">
+  <div class="ms-handle"></div>
+  <div id="ms-items"></div>
+</div>
+
+<script>
+// ── ICONS ─────────────────────────────────────────────────────────────────────
+const _S=`stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"`;
+const ICONS={
+  dashboard:`<svg viewBox="0 0 20 20" ${_S}><rect x="2" y="2" width="7" height="7" rx="1.2"/><rect x="11" y="2" width="7" height="7" rx="1.2"/><rect x="2" y="11" width="7" height="7" rx="1.2"/><rect x="11" y="11" width="7" height="7" rx="1.2"/></svg>`,
+  home:`<svg viewBox="0 0 20 20" ${_S}><path d="M3 9.5L10 3l7 6.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1z"/><path d="M7.5 18V12h5v6"/></svg>`,
+  vehicles:`<svg viewBox="0 0 20 20" ${_S}><path d="M5 10.5l1.8-4.5h6.4l1.8 4.5"/><rect x="2" y="10.5" width="16" height="5" rx="1.2"/><circle cx="6" cy="16" r="1.2"/><circle cx="14" cy="16" r="1.2"/><path d="M2 13h1.5M16.5 13H18"/></svg>`,
+  insurance:`<svg viewBox="0 0 20 20" ${_S}><path d="M10 2.5L3.5 5.5v5c0 4 2.8 6.8 6.5 7.5 3.7-.7 6.5-3.5 6.5-7.5v-5z"/><path d="M7 10l2 2 4-4"/></svg>`,
+  financial:`<svg viewBox="0 0 20 20" ${_S}><rect x="1.5" y="5.5" width="17" height="9" rx="1.5"/><circle cx="10" cy="10" r="2.5"/><path d="M2 8.5h2.5M15.5 8.5H18M2 11.5h2.5M15.5 11.5H18"/></svg>`,
+  health:`<svg viewBox="0 0 20 20" ${_S}><path d="M10 16.5S2.5 12 2.5 7a3.75 3.75 0 017.5-1.2A3.75 3.75 0 0117.5 7c0 5-7.5 9.5-7.5 9.5z"/></svg>`,
+  legal:`<svg viewBox="0 0 20 20" ${_S}><path d="M10 2.5v15"/><path d="M5.5 2.5h9"/><path d="M4 8.5l2-4 2 4a2.3 2.3 0 01-4 0z"/><path d="M12 8.5l2-4 2 4a2.3 2.3 0 01-4 0z"/><path d="M7 17.5h6"/></svg>`,
+  emergency:`<svg viewBox="0 0 20 20" ${_S}><path d="M6.5 9a3.5 3.5 0 017 0c0 4 2 5 2 5h-11s2-1 2-5z"/><path d="M9.1 17.5a1.3 1.3 0 002.8 0"/><path d="M10 4V2.5"/></svg>`,
+  devices:`<svg viewBox="0 0 20 20" ${_S}><rect x="2" y="3.5" width="16" height="10.5" rx="1.5"/><path d="M1 17h18"/><path d="M8 17l.8-3h2.4l.8 3"/></svg>`,
+  travel:`<svg viewBox="0 0 20 20" fill="currentColor" stroke="none"><path d="M11 2a1 1 0 00-2 0v5.25L3 11v1.75l6-1.75V15l-1.5 1.25V17.5L10 17l2.5.5v-1.25L11 15v-3.75l6 1.75V11l-6-3.75V2z"/></svg>`,
+  pets:`<svg viewBox="0 0 20 20" ${_S}><ellipse cx="8" cy="4.5" rx="1.3" ry="1.8"/><ellipse cx="12" cy="4.5" rx="1.3" ry="1.8"/><ellipse cx="5.5" cy="7.5" rx="1.1" ry="1.6"/><ellipse cx="14.5" cy="7.5" rx="1.1" ry="1.6"/><path d="M10 17a4.5 4.5 0 005 0l-1.2-3.5a2.5 2.5 0 00-3.6 0z"/></svg>`,
+  family:`<svg viewBox="0 0 20 20" ${_S}><circle cx="7" cy="6" r="2.5"/><circle cx="13.5" cy="6" r="2.5"/><path d="M1.5 18c0-3 2.4-5 5.5-5s5.5 2 5.5 5"/><path d="M13.5 13c3.1 0 5.5 2 5.5 5"/></svg>`,
+  settings:`<svg viewBox="0 0 20 20" ${_S}><circle cx="10" cy="10" r="3"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.6 4.6l1.4 1.4M14 14l1.4 1.4M4.6 15.4l1.4-1.4M14 6l1.4-1.4"/></svg>`,
+  more:`<svg viewBox="0 0 20 20" ${_S}><circle cx="4" cy="10" r="1.2" fill="currentColor" stroke="none"/><circle cx="10" cy="10" r="1.2" fill="currentColor" stroke="none"/><circle cx="16" cy="10" r="1.2" fill="currentColor" stroke="none"/></svg>`
+};
+function iconSvg(id){return ICONS[id]||ICONS['home'];}
+
+// ── SECTION DEFINITIONS ───────────────────────────────────────────────────────
+const S=[
+  {id:'home',title:'Home',icon:'🏠',desc:'Property and utilities',
+   subs:[
+    {id:'mortgage',title:'Mortgage',si:p=>p.living==='own',fields:['Lender','Account reference','Contact number','Renewal date','Monthly payment','Frequency']},
+    {id:'rent',title:'Rental Details',si:p=>p.living==='rent',fields:['Landlord / Agent','Contact number','Reference number','Rent due date','Payment amount','Frequency']},
+    {id:'bldgs-ins',title:'Buildings Insurance',si:p=>p.living==='own',fields:['Provider','Policy number','Emergency number','Renewal date']},
+    {id:'boiler',title:'Boiler & Heating',si:p=>p.living==='own',fields:['Service provider','Contact number','Service due date']},
+    {id:'council-tax',title:'Council Tax',fields:['Reference number','Council contact number','Payment amount','Frequency']},
+    {id:'gas',title:'Gas',fields:['Provider','Account reference','Contact number','Payment amount','Frequency']},
+    {id:'electric',title:'Electricity',fields:['Provider','Account reference','Contact number','Payment amount','Frequency']},
+    {id:'water',title:'Water',fields:['Provider','Account reference','Contact number','Payment amount','Frequency']},
+    {id:'broadband',title:'Broadband & TV',fields:['Provider','Account reference','Contact number','Payment amount','Frequency']},
+  ]},
+  {id:'vehicles',title:'Vehicles',icon:'🚗',desc:'Your vehicles — each with insurance, breakdown and MOT',
+   si:p=>p.hasCar==='yes', special:'vehicles'},
+  {id:'insurance',title:'Insurance',icon:'🛡️',desc:'All your insurance policies',
+   subs:[
+    {id:'health-ins',title:'Health / Private Medical',fields:['Provider','Policy number','Claims number','Renewal date','Premium','Frequency']},
+    {id:'life-ins',title:'Life Insurance',fields:['Provider','Policy number','Contact number','Renewal date','Premium','Frequency']},
+    {id:'income-prot',title:'Income Protection',fields:['Provider','Policy number','Contact number','Renewal date','Premium','Frequency']},
+    {id:'critical-ill',title:'Critical Illness Cover',fields:['Provider','Policy number','Contact number','Renewal date','Premium','Frequency']},
+    {id:'contents-ins',title:'Contents Insurance',fields:['Provider','Policy number','Emergency number','Renewal date','Premium','Frequency']},
+    {id:'home-emerg',title:'Home Emergency Cover',fields:['Provider','Policy number','Contact number']},
+    {id:'phone-ins',title:'Phone Insurance',fields:['Provider','Policy number','Claims number','Renewal date','Premium','Frequency']},
+    {id:'laptop-ins',title:'Laptop / Device Insurance',fields:['Provider','Policy number','Claims number','Renewal date','Premium','Frequency']},
+  ]},
+  {id:'financial',title:'Financial',icon:'💰',desc:'Banks, loans, savings and pension — who to call, not credentials',
+   subs:[
+    {id:'bank-main',title:'Main Bank',fields:['Bank name','Contact number','Account name']},
+    {id:'bank-2',title:'Second Bank / Joint',fields:['Bank name','Contact number','Account name']},
+    {id:'loans',title:'Loans',fields:['Lender','Reference number','Contact number']},
+    {id:'savings',title:'Savings / ISA',fields:['Provider','Account type','Contact number']},
+    {id:'pension',title:'Pension',fields:['Provider','Reference number','Contact number']},
+    {id:'accountant',title:'Accountant',fields:['Name','Firm','Contact number']},
+  ]},
+  {id:'health',title:'Health',icon:'❤️',desc:'GP, dentist and medical details',
+   subs:[
+    {id:'gp',title:'GP Practice',fields:['Practice name','Phone number','Address']},
+    {id:'dentist',title:'Dentist',fields:['Practice name','Phone number','Address']},
+    {id:'nhs',title:'NHS Details',fields:['NHS number','Blood type']},
+    {id:'nok',title:'Next of Kin',fields:['Name','Relationship','Phone number']},
+  ]},
+  {id:'legal',title:'Legal',icon:'📋',desc:'Solicitor and will details',
+   subs:[
+    {id:'solicitor',title:'Solicitor',fields:['Name','Firm','Phone number']},
+    {id:'will',title:'Will',fields:['Location of original','Executor name','Executor contact']},
+  ]},
+  {id:'emergency',title:'Emergency Numbers',icon:'🚨',desc:'Essential numbers in a crisis',special:'emergency'},
+  {id:'devices',title:'Devices & Tech',icon:'💻',desc:'Device details, serial numbers and warranties',
+   subs:[
+    {id:'phone-detail',title:'Phone',fields:['Make & model','IMEI number','Purchase date','Warranty expiry']},
+    {id:'laptop-detail',title:'Laptop / Computer',fields:['Make & model','Serial number','Purchase date','Warranty expiry']},
+    {id:'other-device',title:'Other Devices',fields:['Device','Serial number','Purchase date','Warranty expiry']},
+  ]},
+  {id:'travel',title:'Travel',icon:'✈️',desc:'Travel insurance and custom trip sections',
+   subs:[
+    {id:'travel-ins',title:'Travel Insurance',fields:['Provider','Policy number','24hr emergency number','Renewal date']},
+  ]},
+  {id:'pets',title:'Pets',icon:'🐾',desc:'Vet and pet insurance',si:p=>p.hasPets==='yes',
+   subs:[
+    {id:'vet',title:'Vet',fields:['Practice name','Phone number','Out-of-hours number']},
+    {id:'pet-ins',title:'Pet Insurance',fields:['Provider','Policy number','Claims number']},
+    {id:'pet-detail',title:'Pet Details',fields:['Name & breed','Microchip number','Date of birth']},
+  ]},
+  {id:'family',title:'Family & Contacts',icon:'👨‍👩‍👧',desc:'Key people and trusted contacts',special:'contacts'},
+];
+
+// Sub-sections for each vehicle
+const VEH_SUBS=[
+  {key:'details', title:'Vehicle Details',    icon:'🚗', fields:['Registration','Make & model','Year','Colour'], noWebsite:true},
+  {key:'insurance',title:'Motor Insurance',   icon:'📋', fields:['Provider','Policy number','Emergency number','Renewal date']},
+  {key:'breakdown',title:'Breakdown Cover',   icon:'🔧', fields:['Provider','Membership number','Call-out number']},
+  {key:'mot',      title:'MOT & Servicing',   icon:'🔩', fields:['Garage','Contact number','MOT due date','Service due date'], noWebsite:true},
+];
+
+const PRESETS=[
+  {label:'Emergency Services',number:'999'},{label:'Police Non-Emergency',number:'101'},
+  {label:'Gas Emergency',number:'0800 111 999'},{label:'Power Cut',number:'105'},
+  {label:'NHS 111',number:'111'},{label:'Samaritans',number:'116 123'},
+];
+
+// ── CUSTOM PROMPT ─────────────────────────────────────────────────────────────
+let cpCallback=null;
+function cpShow(title,placeholder,cb){
+  cpCallback=cb;
+  document.getElementById('cp-title').textContent=title;
+  const inp=document.getElementById('cp-inp');
+  inp.placeholder=placeholder||'';inp.value='';
+  document.getElementById('cprompt').classList.remove('hidden');
+  setTimeout(()=>inp.focus(),80);
+}
+function cpOk(){
+  const v=document.getElementById('cp-inp').value.trim();
+  if(!v)return;
+  document.getElementById('cprompt').classList.add('hidden');
+  if(cpCallback)cpCallback(v);cpCallback=null;
+}
+function cpClose(){
+  document.getElementById('cprompt').classList.add('hidden');cpCallback=null;
+}
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let view='dashboard',editMode=false,db,toastTmr,obStep=0;
+const obA={};
+
+// ── STORAGE ───────────────────────────────────────────────────────────────────
+const K='adulting-v4';
+function LS(){try{return JSON.parse(localStorage.getItem(K)||'{}')}catch{return{}}}
+function SS(d){localStorage.setItem(K,JSON.stringify(d))}
+function getProf(){return LS().__prof||{}}
+function saveProf(p){const d=LS();d.__prof=p;SS(d)}
+function getVis(){
+  const d=LS();if(d.__vis)return d.__vis;
+  const p=getProf(),v={};S.forEach(s=>{v[s.id]=s.si?s.si(p):true});return v;
+}
+function setVis(v){const d=LS();d.__vis=v;SS(d)}
+function getSub(id){const d=LS();return d[id]||{fields:{},notes:'',website:''}}
+function setSub(id,o){const d=LS();d[id]=o;SS(d);toast();updateScore()}
+function getDyn(k){const d=LS();return d[k]||[]}
+function setDyn(k,a){const d=LS();d[k]=a;SS(d);toast();updateScore()}
+function getCusts(sid){return getDyn('__cu__'+sid)}
+function setCusts(sid,a){setDyn('__cu__'+sid,a)}
+// Hidden built-in sub-sections
+function getHiddenSubs(){return new Set(getDyn('__hidden_subs'))}
+function isHiddenSub(id){return getHiddenSubs().has(id)}
+function hideBuiltinSub(id){const s=getHiddenSubs();s.add(id);const d=LS();d['__hidden_subs']=[...s];SS(d);toast();go(view)}
+function showBuiltinSub(id){const s=getHiddenSubs();s.delete(id);const d=LS();d['__hidden_subs']=[...s];SS(d);toast();go(view)}
+// Extra fields on built-in sub-sections
+function getExtraFields(subId){return getDyn('__xf__'+subId)}
+function setExtraFields(subId,arr){const d=LS();d['__xf__'+subId]=arr;SS(d);toast();updateScore()}
+// Vehicles
+function getVehs(){return getDyn('vehicles')}
+function saveVehs(arr){setDyn('vehicles',arr)}
+function newVeh(name){
+  return{id:'veh-'+Date.now(),name,
+    details:{fields:{},notes:''},
+    insurance:{fields:{},notes:'',website:''},
+    breakdown:{fields:{},notes:'',website:''},
+    mot:{fields:{},notes:''}};
+}
+
+// ── INDEXEDDB ─────────────────────────────────────────────────────────────────
+function initDB(){
+  return new Promise((res,rej)=>{
+    const r=indexedDB.open('adulting-files-v2',1);
+    r.onupgradeneeded=e=>e.target.result.createObjectStore('f',{keyPath:'id'});
+    r.onsuccess=e=>{db=e.target.result;res()};r.onerror=rej;
+  });
+}
+function dbSave(sid,file){
+  return new Promise((res,rej)=>{
+    const fr=new FileReader();
+    fr.onload=e=>{
+      const rec={id:`${sid}__${Date.now()}__${file.name}`,subsId:sid,name:file.name,size:file.size,type:file.type,data:e.target.result,at:Date.now()};
+      const tx=db.transaction('f','readwrite');tx.objectStore('f').put(rec);tx.oncomplete=()=>res(rec);tx.onerror=rej;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+function dbGet(sid){
+  return new Promise(res=>{
+    const r=[],tx=db.transaction('f','readonly');
+    tx.objectStore('f').openCursor().onsuccess=e=>{
+      const c=e.target.result;if(c){if(c.value.subsId===sid)r.push(c.value);c.continue()}else res(r);
+    };
+  });
+}
+function dbDel(id){return new Promise(res=>{const tx=db.transaction('f','readwrite');tx.objectStore('f').delete(id);tx.oncomplete=res})}
+function dbAll(){
+  return new Promise(res=>{
+    const r=[],tx=db.transaction('f','readonly');
+    tx.objectStore('f').openCursor().onsuccess=e=>{const c=e.target.result;if(c){r.push(c.value);c.continue()}else res(r)};
+  });
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function toast(){
+  const t=document.getElementById('toast');t.classList.add('show');
+  clearTimeout(toastTmr);toastTmr=setTimeout(()=>t.classList.remove('show'),1600);
+}
+function fmtSz(b){if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(1)+' MB'}
+function fIcon(t){if(!t)return'📄';if(t.startsWith('image/'))return'🖼';if(t==='application/pdf')return'📕';if(t.includes('word'))return'📘';return'📄'}
+function e(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function activeSubs(sec){const p=getProf();return(sec.subs||[]).filter(s=>!s.si||s.si(p))}
+function sid(s){return s.replace(/[^a-z0-9]/gi,'-')}
+
+// ── SCORE ─────────────────────────────────────────────────────────────────────
+function secScore(sec){
+  if(sec.special==='emergency')return getDyn('em-custom').length>0?85:40;
+  if(sec.special==='contacts')return Math.min(100,getDyn('contacts').length*25);
+  if(sec.special==='vehicles'){
+    const vehs=getVehs();if(!vehs.length)return 0;
+    let tot=0,fil=0;
+    vehs.forEach(v=>VEH_SUBS.forEach(vs=>{
+      tot++;
+      const d=v[vs.key]||{fields:{}};
+      if(vs.fields.some(f=>d.fields?.[f]?.trim()))fil++;
+    }));
+    return tot?Math.round(fil/tot*100):0;
+  }
+  const subs=activeSubs(sec);let tot=0,fil=0;
+  subs.forEach(sub=>{
+    if(isHiddenSub(sub.id))return;
+    tot++;
+    const sv=getSub(sub.id);
+    const hasData=(sub.fields||[]).some(f=>sv.fields[f]?.trim())||
+                  getExtraFields(sub.id).some(xf=>xf.value?.trim())||
+                  sv.notes?.trim()||sv.website?.trim();
+    if(hasData)fil++;
+  });
+  getCusts(sec.id).forEach(cs=>{
+    tot++;
+    if((cs.subs||[]).some(sub=>(sub.fields||[]).some(cf=>cf.value?.trim())))fil++;
+  });
+  return tot?Math.round(fil/tot*100):0;
+}
+function overallScore(){
+  const vis=getVis(),secs=S.filter(s=>vis[s.id]);
+  return secs.length?Math.round(secs.reduce((a,s)=>a+secScore(s),0)/secs.length):0;
+}
+function updateScore(){
+  const pct=overallScore();
+  const f=document.getElementById('sc-fill'),l=document.getElementById('sc-pct');
+  if(f)f.style.width=pct+'%';if(l)l.textContent=pct+'%';
+}
+function scoreColor(p){return p>=80?'var(--green)':p>=50?'var(--amber)':'var(--acc)'}
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+function renderNav(){
+  const vis=getVis();
+  document.getElementById('nav').innerHTML=`
+    <div class="nv${view==='dashboard'?' active':''}" onclick="go('dashboard')"><span class="ni">${iconSvg('dashboard')}</span>Dashboard</div>
+    <div class="nv-sep"></div>
+    ${S.filter(s=>vis[s.id]).map(s=>`<div class="nv${view===s.id?' active':''}" onclick="go('${s.id}')"><span class="ni">${iconSvg(s.id)}</span>${s.title}</div>`).join('')}
+    <div class="nv-sep"></div>
+    <div class="nv${view==='settings'?' active':''}" onclick="go('settings')"><span class="ni">${iconSvg('settings')}</span>Settings</div>`;
+}
+// IDs shown as fixed tabs in the bottom nav
+const BOT_TABS=['dashboard','home','insurance','emergency'];
+
+function go(id){if(id!==view)editMode=false;view=id;renderNav();updateBotNav();
+  const m=document.getElementById('main');
+  m.innerHTML=`<div id="srch-zone">
+    <div class="srch-wrap"><span class="si">🔍</span>
+      <input id="srch" type="search" placeholder="Search everything…" oninput="doSearch(this.value)" autocomplete="off">
+    </div>
+    <div id="srch-results" class="sr-hidden"></div>
+  </div><div id="page"></div>`;
+  const pg=document.getElementById('page');
+  if(id==='dashboard')return renderDash(pg);
+  if(id==='settings')return renderSettings(pg);
+  const sec=S.find(s=>s.id===id);if(sec)renderSection(sec,pg);
+}
+function updateBotNav(){
+  BOT_TABS.forEach(id=>{
+    const el=document.getElementById('bn-'+id);
+    if(el)el.classList.toggle('active',view===id);
+  });
+  const more=document.getElementById('bn-more');
+  if(more)more.classList.toggle('active',!BOT_TABS.includes(view)&&view!=='');
+}
+function openMore(){
+  const vis=getVis();
+  const items=document.getElementById('ms-items');if(!items)return;
+  items.innerHTML=[
+    {id:'settings',title:'Settings'},
+    ...S.filter(s=>vis[s.id]&&!BOT_TABS.includes(s.id)).map(s=>({id:s.id,title:s.title}))
+  ].map(({id,title})=>`
+    <button class="ms-item${view===id?' active':''}" onclick="closeMore();go('${id}')">
+      <span class="ms-icon">${iconSvg(id)}</span>${title}
+    </button>`).join('');
+  document.getElementById('more-ov').classList.add('show');
+  document.getElementById('more-sheet').classList.add('show');
+}
+function closeMore(){
+  document.getElementById('more-ov').classList.remove('show');
+  document.getElementById('more-sheet').classList.remove('show');
+}
+function toggleEdit(){editMode=!editMode;go(view)}
+
+// ── SEARCH ────────────────────────────────────────────────────────────────────
+function doSearch(q){
+  const el=document.getElementById('srch-results');if(!el)return;
+  if(!q.trim()){el.className='sr-hidden';el.innerHTML='';return;}
+  const ql=q.toLowerCase();const results=[];
+  const vis=getVis();
+  S.filter(s=>vis[s.id]&&!s.special).forEach(sec=>{
+    activeSubs(sec).forEach(sub=>{
+      if(isHiddenSub(sub.id))return;
+      const sv=getSub(sub.id);
+      (sub.fields||[]).forEach(f=>{const v=sv.fields[f];if(v&&v.toLowerCase().includes(ql))
+        results.push({secId:sec.id,icon:sec.icon,secTitle:sec.title,subTitle:sub.title,label:f,value:v});});
+      getExtraFields(sub.id).forEach(xf=>{if(xf.value&&xf.value.toLowerCase().includes(ql))
+        results.push({secId:sec.id,icon:sec.icon,secTitle:sec.title,subTitle:sub.title,label:xf.label,value:xf.value});});
+    });
+    getCusts(sec.id).forEach(cs=>(cs.subs||[]).forEach(sub=>(sub.fields||[]).forEach(cf=>{
+      if(cf.value&&cf.value.toLowerCase().includes(ql))
+        results.push({secId:sec.id,icon:sec.icon,secTitle:sec.title,subTitle:cs.name+' · '+sub.name,label:cf.label,value:cf.value});
+    })));
+  });
+  getVehs().forEach(veh=>VEH_SUBS.forEach(vs=>{
+    const d=veh[vs.key]||{fields:{}};
+    vs.fields.forEach(f=>{const v=d.fields?.[f];if(v&&v.toLowerCase().includes(ql))
+      results.push({secId:'vehicles',icon:'🚗',secTitle:'Vehicles',subTitle:veh.name+' · '+vs.title,label:f,value:v});});
+  }));
+  if(!results.length){el.innerHTML='<div class="sr-empty">No results for "'+e(q)+'"</div>';el.className='';return;}
+  el.innerHTML=results.slice(0,8).map(r=>`
+    <div class="sr-item" onclick="clearSearch();go('${r.secId}')">
+      <span class="sr-icon" style="color:var(--acc)">${iconSvg(r.secId)}</span>
+      <div class="sr-info">
+        <div class="sr-where">${e(r.secTitle)} · ${e(r.subTitle)}</div>
+        <div class="sr-val"><span class="sr-lbl">${e(r.label)}: </span>${e(r.value)}</div>
+      </div>
+    </div>`).join('');
+  el.className='';
+}
+function clearSearch(){
+  const inp=document.getElementById('srch');if(inp)inp.value='';
+  const el=document.getElementById('srch-results');if(el){el.className='sr-hidden';el.innerHTML='';}
+}
+
+// ── TOOLBAR ───────────────────────────────────────────────────────────────────
+function toolbar(sec){
+  return `<div class="pg-hd">
+    <div class="pg-hd-l"><h2><span class="pg-icon">${iconSvg(sec.id)}</span>${sec.title}</h2><p>${sec.desc}</p></div>
+    <div class="pg-hd-r">
+      ${!sec.special&&!editMode?`<button class="btn-zip" onclick="dlZip('${sec.id}')">⬇ Export</button>`:''}
+      ${editMode?`<button class="btn-done" onclick="toggleEdit()">✓ Done</button>`:`<button class="btn-edit" onclick="toggleEdit()">✏️ Edit</button>`}
+    </div>
+  </div>
+  ${editMode?'<div class="edit-banner">✏️ Edit mode — changes save automatically.</div>':''}`;
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+function isDateField(f){return /date|expiry/i.test(f);}
+function isFreqField(f){return f==='Frequency';}
+function isProvField(f){return /^(Provider|Lender|Bank name)$/i.test(f);}
+
+// ── PROVIDER AUTOCOMPLETE DATA ────────────────────────────────────────────────
+const PROVIDERS=[
+  // Energy
+  {n:'British Gas',u:'https://www.britishgas.co.uk'},{n:'Octopus Energy',u:'https://octopus.energy'},
+  {n:'E.ON',u:'https://www.eon.co.uk'},{n:'E.ON Next',u:'https://www.eonnext.com'},
+  {n:'EDF Energy',u:'https://www.edfenergy.com'},{n:'Scottish Power',u:'https://www.scottishpower.co.uk'},
+  {n:'OVO Energy',u:'https://www.ovoenergy.com'},{n:'Shell Energy',u:'https://shellenergy.co.uk'},
+  {n:'SSE',u:'https://www.sse.co.uk'},{n:'Utilita',u:'https://www.utilita.co.uk'},
+  {n:'Utility Warehouse',u:'https://www.utilitywarehouse.co.uk'},{n:'Rebel Energy',u:'https://www.rebelenergy.com'},
+  // Water
+  {n:'Thames Water',u:'https://www.thameswater.co.uk'},{n:'Severn Trent',u:'https://www.stwater.co.uk'},
+  {n:'Yorkshire Water',u:'https://www.yorkshirewater.com'},{n:'Anglian Water',u:'https://www.anglianwater.co.uk'},
+  {n:'United Utilities',u:'https://www.unitedutilities.com'},{n:'South West Water',u:'https://www.southwestwater.co.uk'},
+  {n:'Wessex Water',u:'https://www.wessexwater.co.uk'},{n:'Southern Water',u:'https://www.southernwater.co.uk'},
+  {n:'Northumbrian Water',u:'https://www.nwl.co.uk'},{n:'Affinity Water',u:'https://www.affinitywater.co.uk'},
+  {n:'Portsmouth Water',u:'https://www.portsmouthwater.co.uk'},{n:'South East Water',u:'https://www.southeastwater.co.uk'},
+  // Broadband & TV
+  {n:'BT',u:'https://www.bt.com'},{n:'Sky',u:'https://www.sky.com'},
+  {n:'Virgin Media',u:'https://www.virginmedia.com'},{n:'TalkTalk',u:'https://www.talktalk.co.uk'},
+  {n:'Vodafone',u:'https://www.vodafone.co.uk'},{n:'EE',u:'https://ee.co.uk'},
+  {n:'Plusnet',u:'https://www.plus.net'},{n:'NOW',u:'https://www.nowtv.com'},
+  {n:'Hyperoptic',u:'https://www.hyperoptic.com'},{n:'Community Fibre',u:'https://www.communityfibre.co.uk'},
+  {n:'Zen Internet',u:'https://www.zen.co.uk'},{n:'KCOM',u:'https://www.kcom.com'},
+  // Banks
+  {n:'Barclays',u:'https://www.barclays.co.uk'},{n:'HSBC',u:'https://www.hsbc.co.uk'},
+  {n:'Lloyds Bank',u:'https://www.lloydsbank.com'},{n:'NatWest',u:'https://www.natwest.com'},
+  {n:'Santander',u:'https://www.santander.co.uk'},{n:'Halifax',u:'https://www.halifax.co.uk'},
+  {n:'Nationwide',u:'https://www.nationwide.co.uk'},{n:'TSB',u:'https://www.tsb.co.uk'},
+  {n:'Metro Bank',u:'https://www.metrobankonline.co.uk'},{n:'Monzo',u:'https://monzo.com'},
+  {n:'Starling Bank',u:'https://www.starlingbank.com'},{n:'Chase',u:'https://www.chase.co.uk'},
+  {n:'First Direct',u:'https://www.firstdirect.com'},{n:'Virgin Money',u:'https://uk.virginmoney.com'},
+  {n:'Co-operative Bank',u:'https://www.co-operativebank.co.uk'},{n:'Revolut',u:'https://www.revolut.com'},
+  // Insurance
+  {n:'Aviva',u:'https://www.aviva.co.uk'},{n:'AXA',u:'https://www.axa.co.uk'},
+  {n:'LV=',u:'https://www.lv.com'},{n:'Direct Line',u:'https://www.directline.com'},
+  {n:'Admiral',u:'https://www.admiral.com'},{n:'Churchill',u:'https://www.churchill.com'},
+  {n:'Saga',u:'https://www.saga.co.uk'},{n:'More Than',u:'https://www.morethan.com'},
+  {n:'Bupa',u:'https://www.bupa.co.uk'},{n:'Vitality',u:'https://www.vitality.co.uk'},
+  {n:'Zurich',u:'https://www.zurich.co.uk'},{n:'Allianz',u:'https://www.allianz.co.uk'},
+  {n:'Legal & General',u:'https://www.legalandgeneral.com'},{n:'Prudential',u:'https://www.pru.co.uk'},
+  {n:'Scottish Widows',u:'https://www.scottishwidows.co.uk'},{n:'Royal London',u:'https://www.royallondon.com'},
+  {n:'Aegon',u:'https://www.aegon.co.uk'},{n:'Standard Life',u:'https://www.standardlife.co.uk'},
+  {n:'NFU Mutual',u:'https://www.nfumutual.co.uk'},{n:'Esure',u:'https://www.esure.com'},
+  {n:'Hastings Direct',u:'https://www.hastingsdirect.com'},{n:'Confused.com',u:'https://www.confused.com'},
+  {n:'Comparethemarket',u:'https://www.comparethemarket.com'},{n:'Go Compare',u:'https://www.gocompare.com'},
+  {n:'Petplan',u:'https://www.petplan.co.uk'},{n:'Animal Friends',u:'https://www.animalfriends.co.uk'},
+  {n:'Bought By Many',u:'https://boughtbymany.com'},{n:'Staysure',u:'https://www.staysure.co.uk'},
+  {n:'Post Office',u:'https://www.postoffice.co.uk'},
+  // Breakdown
+  {n:'AA',u:'https://www.theaa.com'},{n:'RAC',u:'https://www.rac.co.uk'},
+  {n:'Green Flag',u:'https://www.greenflag.com'},{n:'Start Rescue',u:'https://www.startrescue.co.uk'},
+  // Mortgage / Savings / Pensions
+  {n:'Coventry Building Society',u:'https://www.coventrybuildingsociety.co.uk'},
+  {n:'Leeds Building Society',u:'https://www.leedsbuildingsociety.co.uk'},
+  {n:'Platform',u:'https://www.platform.co.uk'},{n:'West Bromwich Building Society',u:'https://www.westbrom.co.uk'},
+  {n:'Hargreaves Lansdown',u:'https://www.hl.co.uk'},{n:'Vanguard',u:'https://www.vanguard.co.uk'},
+  {n:'Fidelity',u:'https://www.fidelity.co.uk'},{n:'Nest',u:'https://www.nestpensions.org.uk'},
+  {n:'The People\'s Pension',u:'https://thepeoplespension.co.uk'},{n:'Nest Pensions',u:'https://www.nestpensions.org.uk'},
+];
+
+function providerAutofill(el){
+  const p=PROVIDERS.find(x=>x.n.toLowerCase()===el.value.trim().toLowerCase());
+  if(!p?.u)return;
+  const wid=el.dataset.wid;if(!wid)return;
+  const urlInp=document.getElementById(wid);
+  if(urlInp&&!urlInp.value.trim()){
+    urlInp.value=p.u;
+    urlInp.dispatchEvent(new Event('input',{bubbles:true}));
+    const btnEl=document.getElementById(wid.startsWith('vurl-')?wid.replace('vurl-','vurl-btn-'):'url-btn-'+wid.slice('url-inp-'.length));
+    if(btnEl){btnEl.href=p.u;btnEl.style.display='inline-block';}
+  }
+}
+function fieldHtml(f,val,attrs,websiteInputId){
+  if(isFreqField(f)){
+    const opts=['','Monthly','Fortnightly','Quarterly','Annual','Weekly','One-off'];
+    return `<div class="fld"><label>${f}</label>
+      <select ${attrs}>
+        ${opts.map(o=>`<option value="${o}"${val===o?' selected':''}>${o||'Select…'}</option>`).join('')}
+      </select></div>`;
+  }
+  if(isProvField(f)){
+    const dlId='prov-dl-'+Math.random().toString(36).slice(2,7);
+    const combinedAttrs=attrs.replace(/oninput="([^"]*)"/, `oninput="$1;providerAutofill(this)"`);
+    return `<div class="fld"><label>${f}</label>
+      <input list="${dlId}" type="text" placeholder="Start typing…" value="${e(val)}"
+        ${combinedAttrs} data-wid="${websiteInputId}" onchange="providerAutofill(this)">
+      <datalist id="${dlId}">${PROVIDERS.map(p=>`<option value="${e(p.n)}">`).join('')}</datalist>
+    </div>`;
+  }
+  if(isDateField(f)){
+    return `<div class="fld"><label>${f}</label>
+      <input type="date" value="${toDateInput(val)}" ${attrs}></div>`;
+  }
+  return `<div class="fld"><label>${f}</label>
+    <input type="text" placeholder="—" value="${e(val)}" ${attrs}></div>`;
+}
+function toDateInput(str){
+  if(!str)return '';
+  if(/^\d{4}-\d{2}-\d{2}$/.test(str))return str;
+  const d=parseDate(str);
+  if(!d||isNaN(d.getTime()))return '';
+  const mm=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0');
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
+function fmtDate(str){
+  if(!str)return '';
+  const d=parseDate(str);
+  if(!d||isNaN(d.getTime()))return str;
+  return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+}
+function parseDate(str){
+  if(!str)return null;
+  const m1=str.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+  if(m1){const y=m1[3].length===2?2000+parseInt(m1[3]):parseInt(m1[3]);return new Date(y,parseInt(m1[2])-1,parseInt(m1[1]));}
+  const m2=str.match(/^(\d{1,2})[\/\-](\d{4})$/);
+  if(m2)return new Date(parseInt(m2[2]),parseInt(m2[1])-1,1);
+  const m3=str.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+  if(m3)return new Date(parseInt(m3[1]),parseInt(m3[2])-1,parseInt(m3[3]));
+  return null;
+}
+function daysUntil(d){return Math.round((d-new Date())/(864e5));}
+function getRenewals(){
+  const DATE_FIELDS=['Renewal date','MOT due date','Service due date','Rent due date','Service due date','Warranty expiry'];
+  const items=[];
+  S.forEach(sec=>{
+    if(sec.special==='vehicles'){
+      getVehs().forEach(veh=>{
+        VEH_SUBS.forEach(vs=>{
+          const d=veh[vs.key]||{fields:{}};
+          DATE_FIELDS.forEach(f=>{
+            const val=d.fields?.[f];if(!val)return;
+            const dt=parseDate(val);if(!dt)return;
+            items.push({label:f,value:val,where:veh.name+' · '+vs.title,secId:'vehicles',icon:'🚗',date:dt});
+          });
+        });
+      });
+      return;
+    }
+    if(sec.special)return;
+    activeSubs(sec).forEach(sub=>{
+      if(isHiddenSub(sub.id))return;
+      const sv=getSub(sub.id);
+      DATE_FIELDS.forEach(f=>{
+        const val=sv.fields[f];if(!val)return;
+        const dt=parseDate(val);if(!dt)return;
+        items.push({label:f,value:val,where:sec.title+' · '+sub.title,secId:sec.id,icon:sec.icon,date:dt});
+      });
+    });
+  });
+  return items.sort((a,b)=>a.date-b.date);
+}
+function renderDash(m){
+  const pct=overallScore(),vis=getVis();
+  const scores=S.filter(s=>vis[s.id]).map(s=>({s,pct:secScore(s)}));
+  const gaps=scores.filter(x=>x.pct<80).sort((a,b)=>a.pct-b.pct);
+  const msg=pct>=80?'You\'re smashing it.':pct>=50?'Good progress — keep filling things in.':'Let\'s get you set up.';
+  const renewals=getRenewals();
+  const renHtml=`<div class="ren-card">
+    <div class="ren-hd">📅 Upcoming Renewals</div>
+    ${renewals.length?renewals.slice(0,6).map(r=>{
+      const days=daysUntil(r.date);
+      const past=days<0;
+      const cls=past?'urgent':days<=30?'urgent':days<=60?'soon':'ok';
+      const badge=past?'Overdue':days<=60?`${days}d`:fmtDate(r.value)||r.value;
+      const dispDate=(!past&&days>60)?fmtDate(r.value)||r.value:'';
+      return `<div class="ren-row" onclick="go('${r.secId}')">
+        <span style="width:18px;height:18px;display:inline-flex;color:var(--acc)">${iconSvg(r.secId)}</span>
+        <div class="ren-info">
+          <div class="ren-name">${e(r.where)}</div>
+          <div class="ren-sub">${e(r.label)}</div>
+        </div>
+        ${dispDate?`<div class="ren-date">${e(dispDate)}</div>`:''}
+        <span class="ren-badge ${cls}">${e(badge)}</span>
+      </div>`;
+    }).join(''):`<div class="sr-empty">Add dates to your sections and they'll appear here.</div>`}
+  </div>`;
+  m.innerHTML=`
+    <div class="pg-hd"><div class="pg-hd-l"><h2>Dashboard</h2><p>Your adulting at a glance</p></div></div>
+    <div class="dash-hero">
+      <div class="dash-pct">${pct}<sup>%</sup></div>
+      <div class="dash-info"><h3>Adulting Score</h3><p>${msg}</p>
+        <div class="dash-bar"><div class="dash-bar-fill" style="width:${pct}%;background:${scoreColor(pct)}"></div></div>
+      </div>
+    </div>
+    ${renHtml}
+    <div class="sec-grid">
+      ${scores.map(({s,pct:p})=>`
+        <div class="sec-tile" onclick="go('${s.id}')">
+          <div class="st-icon">${iconSvg(s.id)}</div>
+          <div class="st-name">${s.title}</div>
+          <div class="st-bar"><div class="st-fill" style="width:${p}%;background:${scoreColor(p)}"></div></div>
+          <div class="st-pct">${p}% complete</div>
+        </div>`).join('')}
+    </div>
+    ${gaps.length?`<div class="gaps"><h3>What needs attention</h3>
+      ${gaps.map(({s,pct:p})=>`<div class="gap-item" onclick="go('${s.id}')">
+        <div class="gap-dot" style="background:${scoreColor(p)}"></div>
+        <div style="flex:1">${s.icon} ${s.title}</div>
+        <div style="font-size:11px;color:var(--txt3)">${p}% filled</div>
+        <span style="color:var(--txt3);font-size:11px">→</span>
+      </div>`).join('')}
+    </div>`:''}`;
+}
+
+// ── SECTION ───────────────────────────────────────────────────────────────────
+function renderSection(sec,m){
+  m.innerHTML=toolbar(sec)+'<div id="cards"></div>';
+  if(sec.special==='emergency')return renderEmergency();
+  if(sec.special==='contacts')return renderContacts();
+  if(sec.special==='vehicles')return renderVehicles();
+  activeSubs(sec).forEach(sub=>{
+    const hid=isHiddenSub(sub.id);
+    if(!editMode&&hid)return;
+    renderCard(sub.id,sub.title,sub.fields,hid);
+  });
+  getCusts(sec.id).forEach(cs=>renderCustomSection(sec.id,cs));
+  if(editMode)document.getElementById('cards').insertAdjacentHTML('beforeend',
+    `<button class="btn-add-sec" onclick="addCustomSection('${sec.id}')">＋ Add custom section</button>`);
+}
+
+// ── VEHICLES ──────────────────────────────────────────────────────────────────
+function renderVehicles(){
+  const vehs=getVehs(),c=document.getElementById('cards');
+  c.innerHTML='';
+  if(!vehs.length&&!editMode){
+    c.innerHTML=`<div style="text-align:center;padding:32px 20px;color:var(--txt3)">
+      <div style="font-size:32px;margin-bottom:8px">🚗</div>
+      <div style="font-size:14px;margin-bottom:14px">No vehicles added yet.</div>
+    </div>`;
+  } else {
+    vehs.forEach(veh=>appendVehicleCard(veh,c));
+  }
+  const btn=document.createElement('button');
+  btn.className='btn-add-sec';btn.textContent='＋ Add vehicle';
+  btn.onclick=()=>addVehicle();
+  c.appendChild(btn);
+  if(editMode)c.insertAdjacentHTML('beforeend',`<button class="btn-add-sec" style="margin-top:6px;background:var(--bg);border:1px dashed var(--bdr);color:var(--txt3)" onclick="toggleEdit()">✓ Done editing</button>`);
+}
+
+function vehDateBadge(label,dateStr){
+  if(!dateStr)return '';
+  const d=parseDate(dateStr);
+  const disp=fmtDate(dateStr)||dateStr;
+  if(!d)return `<span class="veh-dt ok">${e(label)}: ${e(disp)}</span>`;
+  const days=daysUntil(d);
+  const cls=days<0?'urgent':days<=30?'urgent':days<=60?'soon':'ok';
+  const suffix=days<0?' · Overdue':days<=60?` · ${days}d`:'';
+  return `<span class="veh-dt ${cls}">${e(label)}: ${e(disp)}${suffix}</span>`;
+}
+function appendVehicleCard(veh,container){
+  const reg=veh.details?.fields?.['Registration']||'';
+  const model=veh.details?.fields?.['Make & model']||'';
+  const motDate=veh.mot?.fields?.['MOT due date']||'';
+  const insDate=veh.insurance?.fields?.['Renewal date']||'';
+  const card=document.createElement('div');
+  card.className='card vehicle-card';card.id='vcard-'+veh.id;
+
+  const headerName=editMode
+    ? `<input class="card-name-input" value="${e(veh.name)}" placeholder="Vehicle name" onclick="event.stopPropagation()" onchange="renameVeh('${veh.id}',this.value)">`
+    : `${e(veh.name)}${reg?`<span class="veh-reg-tag">${e(reg)}</span>`:''}`;
+
+  const metaHtml=!editMode&&(model||motDate||insDate)?`
+    <div class="veh-meta">
+      ${model?`<span class="veh-model">${e(model)}</span>`:''}
+      ${vehDateBadge('MOT',motDate)}
+      ${vehDateBadge('Insurance',insDate)}
+    </div>`:'';
+
+  card.innerHTML=`
+    <div class="ch" id="vch-${veh.id}">
+      <div style="flex:1;min-width:0">
+        <h3 style="margin:0">${headerName}</h3>
+        ${metaHtml}
+      </div>
+      <div class="ch-r">
+        ${editMode?`<button class="btn-icon" onclick="event.stopPropagation();delVeh('${veh.id}')">🗑</button>`:''}
+        <span class="chev" onclick="toggleCard('v${veh.id}')">▼</span>
+      </div>
+    </div>
+    <div class="cb" id="cb-v${veh.id}">
+      <div id="veh-inner-${veh.id}"></div>
+    </div>`;
+  container.appendChild(card);
+
+  const inner=document.getElementById('veh-inner-'+veh.id);
+  VEH_SUBS.forEach(vs=>appendVehSubCard(veh,vs,inner));
+}
+
+function appendVehSubCard(veh,vs,container){
+  const data=veh[vs.key]||{fields:{},notes:'',website:''};
+  const fileKey=`veh-${veh.id}-${vs.key}`;
+  const div=document.createElement('div');
+  div.className='inner-card';div.id=`vsub-${veh.id}-${vs.key}`;
+
+  if(editMode){
+    const websiteHtml=!vs.noWebsite?`
+      <div class="url-row">
+        <label>🔗 Website / Login</label>
+        <input class="url-inp" type="text" placeholder="Paste login URL…" value="${e(data.website||'')}"
+          oninput="saveVehWebsite(this,'${veh.id}','${vs.key}')" id="vurl-${veh.id}-${vs.key}">
+        <a href="${e(data.website||'#')}" target="_blank" class="btn-url-open"
+          id="vurl-btn-${veh.id}-${vs.key}" style="display:${data.website?'inline-block':'none'}">Open ↗</a>
+      </div>`:'';
+    div.innerHTML=`
+      <div class="ich" id="vich-${veh.id}-${vs.key}" onclick="toggleInner('vsub-${veh.id}-${vs.key}')">
+        <h4>${vs.icon} ${vs.title}</h4>
+        <div class="ich-r"><span class="inner-chev">▼</span></div>
+      </div>
+      <div class="icb" id="icb-vsub-${veh.id}-${vs.key}">
+        ${websiteHtml}
+        <div class="fg">${vs.fields.map(f=>fieldHtml(f,data.fields?.[f]||'',`oninput="saveVehField(this,'${veh.id}','${vs.key}','${f}')"`,`vurl-${veh.id}-${vs.key}`)).join('')}</div>
+        <div class="nw"><label>Notes</label>
+          <textarea placeholder="Add notes…" oninput="saveVehNotes(this,'${veh.id}','${vs.key}')">${e(data.notes||'')}</textarea>
+        </div>
+        ${fileZone(fileKey)}
+      </div>`;
+  } else {
+    const websiteHtml=!vs.noWebsite&&data.website?`<div class="vwebsite"><a href="${e(data.website)}" target="_blank" class="btn-open">🔗 Open website ↗</a></div>`:'';
+    const fieldsHtml=`<div class="vfg">${vs.fields.map(f=>{const raw=data.fields?.[f];const disp=isDateField(f)?(fmtDate(raw)||raw):raw;return`
+      <div class="vfld"><label>${f}</label>
+        <div class="vval${!raw?' empty':''}">${disp?e(disp):'—'}</div>
+      </div>`;}).join('')}</div>`;
+    const notesHtml=data.notes?`<div class="vnotes-wrap"><label>Notes</label><div class="vnotes">${e(data.notes)}</div></div>`:'';
+    div.innerHTML=`
+      <div class="ich" onclick="toggleInner('vsub-${veh.id}-${vs.key}')">
+        <h4>${vs.icon} ${vs.title}</h4>
+        <div class="ich-r"><span class="inner-chev">▼</span></div>
+      </div>
+      <div class="icb" id="icb-vsub-${veh.id}-${vs.key}">
+        ${websiteHtml}${fieldsHtml}${notesHtml}
+        <div class="fw"><span class="fw-lbl">Documents</span><div class="flist" id="fl-${fileKey}"></div></div>
+      </div>`;
+  }
+  container.appendChild(div);
+  loadFiles(fileKey);
+}
+
+function addVehicle(){
+  cpShow('Name this vehicle','e.g. My Car or the registration',name=>{
+    const vehs=getVehs();vehs.push(newVeh(name));saveVehs(vehs);go('vehicles');
+  });
+}
+function delVeh(id){
+  if(!confirm('Delete this vehicle and all its details?'))return;
+  saveVehs(getVehs().filter(v=>v.id!==id));go('vehicles');
+}
+function renameVeh(id,name){
+  const vehs=getVehs(),v=vehs.find(x=>x.id===id);if(v){v.name=name;saveVehs(vehs);}
+}
+function saveVehField(el,vehId,section,field){
+  const vehs=getVehs(),veh=vehs.find(v=>v.id===vehId);if(!veh)return;
+  veh[section]=veh[section]||{fields:{},notes:''};
+  veh[section].fields=veh[section].fields||{};
+  veh[section].fields[field]=el.value;
+  saveVehs(vehs);
+  if(isProvField(field))providerAutofill(el);
+  // update reg tag in header if registration changed
+  if(section==='details'&&field==='Registration'){
+    const h=document.getElementById('vcard-'+vehId)?.querySelector('h3');
+    if(h){const tag=h.querySelector('.veh-reg-tag');if(tag)tag.textContent=el.value;}
+  }
+}
+function saveVehNotes(el,vehId,section){
+  const vehs=getVehs(),veh=vehs.find(v=>v.id===vehId);if(!veh)return;
+  veh[section]=veh[section]||{fields:{},notes:''};veh[section].notes=el.value;saveVehs(vehs);
+}
+function saveVehWebsite(el,vehId,section){
+  const vehs=getVehs(),veh=vehs.find(v=>v.id===vehId);if(!veh)return;
+  veh[section]=veh[section]||{fields:{},notes:'',website:''};veh[section].website=el.value;saveVehs(vehs);
+  const btn=document.getElementById(`vurl-btn-${vehId}-${section}`);
+  if(btn){btn.href=el.value||'#';btn.style.display=el.value?'inline-block':'none';}
+}
+
+// ── CARD TOGGLES ─────────────────────────────────────────────────────────────
+function toggleCard(id){
+  document.getElementById('cb-'+id)?.classList.toggle('hidden');
+  document.getElementById('ch-'+id)?.classList.toggle('collapsed');
+}
+function toggleInner(id){
+  document.getElementById('icb-'+id)?.classList.toggle('hidden');
+  document.getElementById('vich-'+id.replace('vsub-','').replace(/-([^-]+)$/,'-$1'))?.classList.toggle('collapsed');
+  // generic: find the ich above the icb
+  const icb=document.getElementById('icb-'+id);
+  if(icb){const ich=icb.previousElementSibling;if(ich)ich.classList.toggle('collapsed');}
+}
+
+// ── BUILT-IN CARD ─────────────────────────────────────────────────────────────
+function renderCard(subId,title,fields,isHid=false){
+  const sv=getSub(subId);
+  const xf=getExtraFields(subId);
+  const filled=(fields||[]).filter(f=>sv.fields[f]?.trim()).length+xf.filter(x=>x.value?.trim()).length;
+  const total=(fields||[]).length+xf.length;
+  const pct=total?Math.round(filled/total*100):0;
+  const card=document.createElement('div');
+  card.className='card'+(isHid?' card-hidden':'');
+  card.id='card-'+subId;
+
+  if(isHid&&editMode){
+    // greyed-out hidden card — just a header with Restore
+    card.innerHTML=`
+      <div class="ch" style="cursor:default">
+        <h3 style="color:var(--txt3)">${title} <span style="font-size:11px;font-weight:400">(hidden)</span></h3>
+        <div class="ch-r"><button class="btn-restore" onclick="showBuiltinSub('${subId}')">Restore</button></div>
+      </div>`;
+  } else if(editMode){
+    card.innerHTML=`
+      <div class="ch" id="ch-${subId}" onclick="toggleCard('${subId}')">
+        <h3>${title}</h3>
+        <div class="ch-r">
+          <button class="btn-hide-sub" onclick="event.stopPropagation();hideBuiltinSub('${subId}')">Hide</button>
+          <span class="ch-pct${pct===100?' ok':''}" id="pct-${subId}">${total?pct+'%':''}</span>
+          <span class="chev">▼</span>
+        </div>
+      </div>
+      <div class="cprog"><div class="cprog-fill${pct===100?' full':''}" id="prog-${subId}" style="width:${pct}%"></div></div>
+      <div class="cb" id="cb-${subId}">
+        <div class="url-row">
+          <label>🔗 Website / Login</label>
+          <input class="url-inp" type="text" placeholder="Paste login URL…" value="${e(sv.website||'')}"
+            data-sub="${subId}" oninput="saveWebsite(this)" id="url-inp-${sid(subId)}">
+          <a href="${e(sv.website||'#')}" target="_blank" class="btn-url-open" id="url-btn-${sid(subId)}"
+            style="display:${sv.website?'inline-block':'none'}">Open ↗</a>
+        </div>
+        ${fields?.length?`<div class="fg">${fields.map(f=>fieldHtml(f,sv.fields[f]||'',`data-sub="${subId}" data-f="${e(f)}" oninput="saveField(this)"`,`url-inp-${sid(subId)}`)).join('')}</div>`:''}
+        <div class="cfields" id="xf-wrap-${sid(subId)}">
+          ${xf.map((xfl,i)=>`
+          <div class="cf-row">
+            <input class="cf-lbl-inp" value="${e(xfl.label)}" placeholder="Label"
+              onchange="updXF('${subId}',${i},'label',this.value)">
+            <input class="cf-val-inp" value="${e(xfl.value)}" placeholder="Value"
+              oninput="updXF('${subId}',${i},'value',this.value)">
+            <button class="btn-icon" onclick="delXF('${subId}',${i})">×</button>
+          </div>`).join('')}
+        </div>
+        <button class="btn-add" onclick="addXF('${subId}')">＋ Add field</button>
+        <div class="nw"><label>Notes</label>
+          <textarea placeholder="Add notes…" data-sub="${subId}" oninput="saveNotes(this)">${e(sv.notes||'')}</textarea>
+        </div>
+        ${fileZone(subId)}
+      </div>`;
+  } else {
+    const websiteHtml=sv.website?`<div class="vwebsite"><a href="${e(sv.website)}" target="_blank" class="btn-open">🔗 Open website ↗</a></div>`:'';
+    const builtinFieldsHtml=(fields||[]).map(f=>{const raw=sv.fields[f];const disp=isDateField(f)?(fmtDate(raw)||raw):raw;return`
+      <div class="vfld"><label>${f}</label>
+        <div class="vval${!raw?' empty':''}">${disp?e(disp):'—'}</div>
+      </div>`;}).join('');
+    const extraFieldsHtml=xf.map(xfl=>`
+      <div class="vfld"><label>${e(xfl.label||'Field')}</label>
+        <div class="vval${!xfl.value?' empty':''}">${xfl.value?e(xfl.value):'—'}</div>
+      </div>`).join('');
+    const fieldsHtml=(fields?.length||xf.length)?`<div class="vfg">${builtinFieldsHtml}${extraFieldsHtml}</div>`:'';
+    const notesHtml=sv.notes?`<div class="vnotes-wrap"><label>Notes</label><div class="vnotes">${e(sv.notes)}</div></div>`:'';
+    card.innerHTML=`
+      <div class="ch" id="ch-${subId}" onclick="toggleCard('${subId}')">
+        <h3>${title}</h3>
+        <div class="ch-r"><span class="ch-pct${pct===100?' ok':''}">${total?pct+'%':''}</span><span class="chev">▼</span></div>
+      </div>
+      <div class="cprog"><div class="cprog-fill${pct===100?' full':''}" style="width:${pct}%"></div></div>
+      <div class="cb" id="cb-${subId}">${websiteHtml}${fieldsHtml}${notesHtml}
+        <div class="fw"><span class="fw-lbl">Documents</span><div class="flist" id="fl-${subId}"></div></div>
+      </div>`;
+  }
+  document.getElementById('cards').appendChild(card);loadFiles(subId);
+}
+
+// ── EXTRA FIELDS (built-in subs) ──────────────────────────────────────────────
+function addXF(subId){
+  const xf=getExtraFields(subId);xf.push({label:'',value:''});setExtraFields(subId,xf);
+  const wrap=document.getElementById('xf-wrap-'+sid(subId));if(!wrap)return;
+  const i=xf.length-1;
+  const row=document.createElement('div');row.className='cf-row';
+  row.innerHTML=`
+    <input class="cf-lbl-inp" value="" placeholder="Label" onchange="updXF('${subId}',${i},'label',this.value)">
+    <input class="cf-val-inp" value="" placeholder="Value" oninput="updXF('${subId}',${i},'value',this.value)">
+    <button class="btn-icon" onclick="delXF('${subId}',${i})">×</button>`;
+  wrap.appendChild(row);
+}
+function updXF(subId,i,key,val){
+  const xf=getExtraFields(subId);if(xf[i])xf[i][key]=val;setExtraFields(subId,xf);
+}
+function delXF(subId,i){
+  const xf=getExtraFields(subId);xf.splice(i,1);setExtraFields(subId,xf);
+  // re-render the wrap
+  const wrap=document.getElementById('xf-wrap-'+sid(subId));if(!wrap)return;
+  wrap.innerHTML=xf.map((xfl,j)=>`
+    <div class="cf-row">
+      <input class="cf-lbl-inp" value="${e(xfl.label)}" placeholder="Label"
+        onchange="updXF('${subId}',${j},'label',this.value)">
+      <input class="cf-val-inp" value="${e(xfl.value)}" placeholder="Value"
+        oninput="updXF('${subId}',${j},'value',this.value)">
+      <button class="btn-icon" onclick="delXF('${subId}',${j})">×</button>
+    </div>`).join('');
+}
+
+// ── WEBSITE SAVE ─────────────────────────────────────────────────────────────
+function saveWebsite(el){
+  const sv=getSub(el.dataset.sub);sv.website=el.value;setSub(el.dataset.sub,sv);
+  const btn=document.getElementById('url-btn-'+sid(el.dataset.sub));
+  if(btn){btn.href=el.value||'#';btn.style.display=el.value?'inline-block':'none';}
+}
+
+// ── CUSTOM SECTIONS ───────────────────────────────────────────────────────────
+function renderCustomSection(secId,cs){
+  const card=document.createElement('div');card.className='card custom-card';card.id='ccard-'+cs.id;
+  if(editMode){
+    card.innerHTML=`
+      <div class="ch" id="ch-c${cs.id}">
+        <h3><input class="card-name-input" value="${e(cs.name)}" placeholder="Section name"
+          onclick="event.stopPropagation()" onchange="renameCS('${secId}','${cs.id}',this.value)"></h3>
+        <div class="ch-r">
+          <button class="btn-icon" onclick="event.stopPropagation();delCS('${secId}','${cs.id}')">🗑</button>
+          <span class="chev" onclick="event.stopPropagation();toggleCard('c${cs.id}')">▼</span>
+        </div>
+      </div>
+      <div class="cb" id="cb-c${cs.id}">
+        <div id="cs-inner-${cs.id}"></div>
+        <button class="btn-add-inner" onclick="addCSSub('${secId}','${cs.id}')">＋ Add sub-section</button>
+      </div>`;
+  } else {
+    card.innerHTML=`
+      <div class="ch" id="ch-c${cs.id}" onclick="toggleCard('c${cs.id}')">
+        <h3>${e(cs.name)}</h3><div class="ch-r"><span class="chev">▼</span></div>
+      </div>
+      <div class="cb" id="cb-c${cs.id}"><div id="cs-inner-${cs.id}"></div></div>`;
+  }
+  document.getElementById('cards').appendChild(card);
+  renderCSInner(secId,cs);
+}
+function renderCSInner(secId,cs){
+  const el=document.getElementById('cs-inner-'+cs.id);if(!el)return;
+  el.innerHTML='';(cs.subs||[]).forEach(sub=>appendCSSubCard(secId,cs.id,sub,el));
+}
+function appendCSSubCard(secId,csId,sub,container){
+  const dbKey=`__ics__${csId}__${sub.id}`,sv=getSub(dbKey);
+  const div=document.createElement('div');div.className='inner-card';div.id='iccard-'+sub.id;
+  if(editMode){
+    div.innerHTML=`
+      <div class="ich" id="ich-${sub.id}" onclick="toggleInner2('${sub.id}')">
+        <h4><input class="inner-name-input" value="${e(sub.name)}" placeholder="Sub-section name"
+          onclick="event.stopPropagation()" onchange="renameCSSub('${secId}','${csId}','${sub.id}',this.value)"></h4>
+        <div class="ich-r">
+          <button class="btn-icon" onclick="event.stopPropagation();delCSSub('${secId}','${csId}','${sub.id}')">×</button>
+          <span class="inner-chev">▼</span>
+        </div>
+      </div>
+      <div class="icb" id="icb-${sub.id}">
+        <div class="url-row">
+          <label>🔗 Website / Login</label>
+          <input class="url-inp" type="text" placeholder="Paste login URL…" value="${e(sv.website||'')}"
+            data-sub="${dbKey}" oninput="saveWebsite(this)" id="url-inp-${sid(dbKey)}">
+          <a href="${e(sv.website||'#')}" target="_blank" class="btn-url-open" id="url-btn-${sid(dbKey)}"
+            style="display:${sv.website?'inline-block':'none'}">Open ↗</a>
+        </div>
+        <div class="cfields"><span class="cfields-lbl">Fields</span>
+          <div id="icfields-${sub.id}"></div>
+          <button class="btn-add" onclick="addICSField('${secId}','${csId}','${sub.id}')">＋ Add field</button>
+        </div>
+        <div class="nw"><label>Notes</label>
+          <textarea placeholder="Add notes…" data-sub="${dbKey}" oninput="saveNotes(this)">${e(sv.notes||'')}</textarea>
+        </div>
+        ${fileZone(dbKey)}
+      </div>`;
+  } else {
+    const websiteHtml=sv.website?`<div class="vwebsite"><a href="${e(sv.website)}" target="_blank" class="btn-open">🔗 Open website ↗</a></div>`:'';
+    const fieldsHtml=(sub.fields||[]).length?`<div class="vfg">${(sub.fields||[]).map(cf=>`
+      <div class="vfld"><label>${e(cf.label||'')}</label>
+        <div class="vval${!cf.value?' empty':''}">${cf.value?e(cf.value):'—'}</div>
+      </div>`).join('')}</div>`:'';
+    const notesHtml=sv.notes?`<div class="vnotes-wrap"><label>Notes</label><div class="vnotes">${e(sv.notes)}</div></div>`:'';
+    div.innerHTML=`
+      <div class="ich" onclick="toggleInner2('${sub.id}')">
+        <h4>${e(sub.name)}</h4><div class="ich-r"><span class="inner-chev">▼</span></div>
+      </div>
+      <div class="icb" id="icb-${sub.id}">${websiteHtml}${fieldsHtml}${notesHtml}
+        <div class="fw"><span class="fw-lbl">Documents</span><div class="flist" id="fl-${dbKey}"></div></div>
+      </div>`;
+  }
+  container.appendChild(div);
+  if(editMode)renderICSFields(secId,csId,sub);
+  loadFiles(dbKey);
+}
+function toggleInner2(id){
+  document.getElementById('icb-'+id)?.classList.toggle('hidden');
+  document.getElementById('ich-'+id)?.classList.toggle('collapsed');
+}
+function addCustomSection(secId){
+  cpShow('Name this section','e.g. Croatia 2027',name=>{
+    const custs=getCusts(secId);custs.push({id:secId+'-'+Date.now(),name,subs:[]});
+    setCusts(secId,custs);go(secId);
+  });
+}
+function renameCS(secId,csId,val){const custs=getCusts(secId),cs=custs.find(c=>c.id===csId);if(cs){cs.name=val;setCusts(secId,custs)}}
+function delCS(secId,csId){if(!confirm('Delete this section?'))return;setCusts(secId,getCusts(secId).filter(c=>c.id!==csId));go(secId)}
+function addCSSub(secId,csId){
+  cpShow('Name this sub-section','e.g. Hotel, Car Rental',name=>{
+    const custs=getCusts(secId),cs=custs.find(c=>c.id===csId);if(!cs)return;
+    cs.subs=cs.subs||[];cs.subs.push({id:csId+'-sub-'+Date.now(),name,fields:[]});
+    setCusts(secId,custs);const el=document.getElementById('cs-inner-'+csId);
+    if(el)appendCSSubCard(secId,csId,cs.subs[cs.subs.length-1],el);
+  });
+}
+function renameCSSub(secId,csId,subId,val){
+  const custs=getCusts(secId),cs=custs.find(c=>c.id===csId),sub=cs?.subs?.find(s=>s.id===subId);
+  if(sub){sub.name=val;setCusts(secId,custs)}
+}
+function delCSSub(secId,csId,subId){
+  const custs=getCusts(secId),cs=custs.find(c=>c.id===csId);if(!cs)return;
+  cs.subs=cs.subs.filter(s=>s.id!==subId);setCusts(secId,custs);document.getElementById('iccard-'+subId)?.remove();
+}
+function renderICSFields(secId,csId,sub){
+  const el=document.getElementById('icfields-'+sub.id);if(!el)return;
+  el.innerHTML=(sub.fields||[]).map((cf,i)=>`
+    <div class="cf-row">
+      <input class="cf-lbl-inp" value="${e(cf.label)}" placeholder="Label"
+        onchange="updICSField('${secId}','${csId}','${sub.id}',${i},'label',this.value)">
+      <input class="cf-val-inp" value="${e(cf.value)}" placeholder="Value"
+        oninput="updICSField('${secId}','${csId}','${sub.id}',${i},'value',this.value)">
+      <button class="btn-icon" onclick="delICSField('${secId}','${csId}','${sub.id}',${i})">×</button>
+    </div>`).join('');
+}
+function addICSField(secId,csId,subId){
+  const custs=getCusts(secId),cs=custs.find(c=>c.id===csId),sub=cs?.subs?.find(s=>s.id===subId);
+  if(!sub)return;sub.fields=sub.fields||[];sub.fields.push({label:'',value:''});setCusts(secId,custs);renderICSFields(secId,csId,sub);
+}
+function updICSField(secId,csId,subId,i,key,val){
+  const custs=getCusts(secId),cs=custs.find(c=>c.id===csId),sub=cs?.subs?.find(s=>s.id===subId);
+  if(sub?.fields[i]){sub.fields[i][key]=val;setCusts(secId,custs)}
+}
+function delICSField(secId,csId,subId,i){
+  const custs=getCusts(secId),cs=custs.find(c=>c.id===csId),sub=cs?.subs?.find(s=>s.id===subId);
+  if(!sub)return;sub.fields.splice(i,1);setCusts(secId,custs);renderICSFields(secId,csId,sub);
+}
+
+// ── FIELD SAVE ────────────────────────────────────────────────────────────────
+function saveField(el){
+  const sub=el.dataset.sub,f=el.dataset.f,sv=getSub(sub);sv.fields[f]=el.value;setSub(sub,sv);
+  if(isProvField(f))providerAutofill(el);
+  const sec=S.find(s=>(s.subs||[]).some(sb=>sb.id===sub));
+  if(sec){
+    const sb=sec.subs.find(x=>x.id===sub);if(sb){
+      const tot=sb.fields.length,fil=sb.fields.filter(f2=>sv.fields[f2]?.trim()).length,pct=Math.round(fil/tot*100);
+      const pr=document.getElementById('prog-'+sub),pc=document.getElementById('pct-'+sub);
+      if(pr){pr.style.width=pct+'%';pr.className='cprog-fill'+(pct===100?' full':'')}
+      if(pc){pc.textContent=pct+'%';pc.className='ch-pct'+(pct===100?' ok':'')}
+    }
+  }
+}
+function saveNotes(el){const sv=getSub(el.dataset.sub);sv.notes=el.value;setSub(el.dataset.sub,sv)}
+
+// ── FILES ─────────────────────────────────────────────────────────────────────
+function fileZone(subId){
+  const s=sid(subId);
+  return `<div class="fw"><span class="fw-lbl">Documents</span>
+    <div class="dz" id="dz-${s}" onclick="document.getElementById('fi-${s}').click()"
+      ondragover="dzOver(event,'${s}')" ondragleave="dzLeave('${s}')" ondrop="dzDrop(event,'${s}','${subId}')">
+      <input type="file" id="fi-${s}" multiple onchange="filePick(this,'${subId}')">
+      📎 <span class="dz-txt"></span>
+    </div>
+    <div class="flist" id="fl-${subId}"></div>
+  </div>`;
+}
+function dzOver(e,s){e.preventDefault();document.getElementById('dz-'+s)?.classList.add('over')}
+function dzLeave(s){document.getElementById('dz-'+s)?.classList.remove('over')}
+function dzDrop(e,s,id){e.preventDefault();dzLeave(s);uploadFiles([...e.dataTransfer.files],id)}
+function filePick(inp,id){uploadFiles([...inp.files],id);inp.value=''}
+async function uploadFiles(files,id){for(const f of files)await dbSave(id,f);loadFiles(id);toast()}
+async function loadFiles(id){
+  const files=await dbGet(id),el=document.getElementById('fl-'+id);if(!el)return;
+  el.innerHTML=files.sort((a,b)=>b.at-a.at).map(f=>`
+    <div class="fi"><span>${fIcon(f.type)}</span>
+      <span class="fn" title="${e(f.name)}">${e(f.name)}</span>
+      <span class="fsz">${fmtSz(f.size)}</span>
+      <button class="btn-dl" onclick="dlFile('${f.id}')">Download</button>
+      ${editMode?`<button class="btn-del" onclick="rmFile('${f.id}','${id}')">×</button>`:''}
+    </div>`).join('');
+}
+async function dlFile(fid){
+  const tx=db.transaction('f','readonly'),req=tx.objectStore('f').get(fid);
+  req.onsuccess=ev=>{const f=ev.target.result;if(!f)return;const a=document.createElement('a');a.href=f.data;a.download=f.name;a.click()};
+}
+async function rmFile(fid,id){if(!confirm('Delete this file?'))return;await dbDel(fid);loadFiles(id)}
+
+// ── EMERGENCY ─────────────────────────────────────────────────────────────────
+function renderEmergency(){
+  const c=document.getElementById('cards'),sv=getSub('em-notes');
+  if(editMode){
+    c.innerHTML=`
+      <div class="card">
+        <div class="ch"><h3>Standard UK Numbers</h3><div class="ch-r"><span class="chev">▼</span></div></div>
+        <div class="cb"><div class="preset-grid">${PRESETS.map(p=>`<div class="pnum"><div class="pl">${p.label}</div><div class="pv">${p.number}</div></div>`).join('')}</div></div>
+      </div>
+      <div class="card">
+        <div class="ch" onclick="toggleCard('em-cust')"><h3>Your Numbers</h3><div class="ch-r"><span class="chev">▼</span></div></div>
+        <div class="cb" id="cb-em-cust"><div id="em-rows"></div><button class="btn-add" onclick="addEmRow()">＋ Add number</button></div>
+      </div>
+      <div class="card">
+        <div class="ch" onclick="toggleCard('em-notes')"><h3>Notes</h3><div class="ch-r"><span class="chev">▼</span></div></div>
+        <div class="cb" id="cb-em-notes"><div class="nw"><textarea placeholder="Any notes…" data-sub="em-notes" oninput="saveNotes(this)">${e(sv.notes||'')}</textarea></div></div>
+      </div>`;
+    renderEmRows();
+  } else {
+    const custom=getDyn('em-custom');
+    c.innerHTML=`
+      <div class="card">
+        <div class="ch"><h3>Standard UK Numbers</h3><div class="ch-r"><span class="chev">▼</span></div></div>
+        <div class="cb"><div class="preset-grid">${PRESETS.map(p=>`<div class="pnum"><div class="pl">${p.label}</div><div class="pv">${p.number}</div></div>`).join('')}</div></div>
+      </div>
+      ${custom.length?`<div class="card">
+        <div class="ch"><h3>Your Numbers</h3><div class="ch-r"><span class="chev">▼</span></div></div>
+        <div class="cb">${custom.map(r=>`<div class="vem-row"><span class="vem-label">${e(r.label)}</span><span class="vem-number">${e(r.number)}</span></div>`).join('')}</div>
+      </div>`:''}
+      ${sv.notes?`<div class="card">
+        <div class="ch"><h3>Notes</h3><div class="ch-r"><span class="chev">▼</span></div></div>
+        <div class="cb"><div class="vnotes">${e(sv.notes)}</div></div>
+      </div>`:''}`;
+  }
+}
+function renderEmRows(){
+  const rows=getDyn('em-custom'),el=document.getElementById('em-rows');if(!el)return;
+  el.innerHTML=rows.map((r,i)=>`
+    <div class="drow"><button class="rd" onclick="delEmRow(${i})">×</button>
+      <div class="fld"><label>Label</label><input type="text" value="${e(r.label||'')}" placeholder="e.g. Plumber" oninput="updEm(${i},'label',this.value)"></div>
+      <div class="fld"><label>Number</label><input type="text" value="${e(r.number||'')}" placeholder="Phone number" oninput="updEm(${i},'number',this.value)"></div>
+    </div>`).join('');
+}
+function addEmRow(){const r=getDyn('em-custom');r.push({label:'',number:''});setDyn('em-custom',r);renderEmRows()}
+function delEmRow(i){const r=getDyn('em-custom');r.splice(i,1);setDyn('em-custom',r);renderEmRows()}
+function updEm(i,k,v){const r=getDyn('em-custom');if(r[i])r[i][k]=v;setDyn('em-custom',r)}
+
+// ── CONTACTS ──────────────────────────────────────────────────────────────────
+function renderContacts(){
+  const c=document.getElementById('cards');
+  renderCard('school','School / Childcare',['Name','Phone number','Address','Contact person']);
+  renderCard('neighbour','Trusted Neighbour',['Name','Phone number','Address']);
+  const contacts=getDyn('contacts');
+  if(editMode){
+    const div=document.createElement('div');div.className='card';
+    div.innerHTML=`<div class="ch"><h3>People & Contacts</h3><div class="ch-r"><span class="chev">▼</span></div></div>
+      <div class="cb"><div id="contacts-rows"></div><button class="btn-add" onclick="addContact()">＋ Add contact</button></div>`;
+    c.appendChild(div);renderContactRows();
+  } else if(contacts.length){
+    const div=document.createElement('div');div.className='card';
+    div.innerHTML=`<div class="ch"><h3>People & Contacts</h3><div class="ch-r"><span class="chev">▼</span></div></div>
+      <div class="cb">${contacts.map(r=>`
+        <div style="padding:10px 0;border-bottom:1px solid var(--bdr)">
+          <div style="font-size:14px;font-weight:600;margin-bottom:2px">${e(r.name||'—')}</div>
+          <div style="font-size:12.5px;color:var(--txt2)">${[r.rel,r.phone,r.email].filter(Boolean).map(e).join(' · ')}</div>
+        </div>`).join('')}
+      </div>`;
+    c.appendChild(div);
+  }
+}
+function renderContactRows(){
+  const rows=getDyn('contacts'),el=document.getElementById('contacts-rows');if(!el)return;
+  el.innerHTML=rows.map((r,i)=>`
+    <div class="drow" style="grid-template-columns:1fr 1fr"><button class="rd" onclick="delContact(${i})">×</button>
+      <div class="fld"><label>Name</label><input type="text" value="${e(r.name||'')}" oninput="updContact(${i},'name',this.value)"></div>
+      <div class="fld"><label>Relationship</label><input type="text" value="${e(r.rel||'')}" oninput="updContact(${i},'rel',this.value)"></div>
+      <div class="fld"><label>Phone</label><input type="text" value="${e(r.phone||'')}" oninput="updContact(${i},'phone',this.value)"></div>
+      <div class="fld"><label>Email</label><input type="text" value="${e(r.email||'')}" oninput="updContact(${i},'email',this.value)"></div>
+    </div>`).join('');
+}
+function addContact(){const r=getDyn('contacts');r.push({name:'',rel:'',phone:'',email:''});setDyn('contacts',r);renderContactRows()}
+function delContact(i){const r=getDyn('contacts');r.splice(i,1);setDyn('contacts',r);renderContactRows()}
+function updContact(i,k,v){const r=getDyn('contacts');if(r[i])r[i][k]=v;setDyn('contacts',r)}
+
+// ── TEXT DOWNLOAD ─────────────────────────────────────────────────────────────
+async function dlZip(secId){
+  const sec=S.find(s=>s.id===secId);if(!sec)return;
+  let txt=`ADULTING — ${sec.title}\nExported: ${new Date().toLocaleDateString('en-GB')}\n${'='.repeat(40)}\n\n`;
+  for(const sub of activeSubs(sec)){
+    const sv=getSub(sub.id);
+    txt+=`${sub.title.toUpperCase()}\n${'-'.repeat(sub.title.length)}\n`;
+    if(sv.website)txt+=`Website: ${sv.website}\n`;
+    (sub.fields||[]).forEach(f=>txt+=`${f}: ${sv.fields[f]||'—'}\n`);
+    if(sv.notes)txt+=`Notes: ${sv.notes}\n`;txt+='\n';
+  }
+  for(const cs of getCusts(secId)){
+    txt+=`\n${cs.name.toUpperCase()}\n${'='.repeat(cs.name.length)}\n`;
+    for(const sub of cs.subs||[]){
+      const dbKey=`__ics__${cs.id}__${sub.id}`,sv=getSub(dbKey);
+      txt+=`  ${sub.name}\n  ${'-'.repeat(sub.name.length)}\n`;
+      if(sv.website)txt+=`  Website: ${sv.website}\n`;
+      (sub.fields||[]).forEach(cf=>txt+=`  ${cf.label||'Field'}: ${cf.value||'—'}\n`);
+      if(sv.notes)txt+=`  Notes: ${sv.notes}\n`;txt+='\n';
+    }
+  }
+  const blob=new Blob([txt],{type:'text/plain'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`adulting-${secId}-${new Date().toISOString().slice(0,10)}.txt`;a.click();
+}
+
+// ── SETTINGS ──────────────────────────────────────────────────────────────────
+function renderSettings(m){
+  const vis=getVis(),p=getProf();
+  m.innerHTML=`
+    <div class="pg-hd"><div class="pg-hd-l"><h2>⚙️ Settings</h2><p>Profile and preferences</p></div></div>
+    <div class="set-sec"><h3>Your profile</h3>
+      ${qCard('Living situation',[['own','🏠 Own home'],['rent','🔑 Renting'],['other','👨‍👩‍👧 Living with family']],'living',p.living)}
+      ${qCard('Do you have a car?',[['yes','Yes'],['no','No']],'hasCar',p.hasCar)}
+      ${qCard('Do you have pets?',[['yes','Yes'],['no','No']],'hasPets',p.hasPets)}
+      ${qCard('Do you have children?',[['yes','Yes'],['no','No']],'hasChildren',p.hasChildren)}
+      <button class="btn-pri" onclick="applyProfile()">Apply & update sections</button>
+    </div>
+    <div class="set-sec"><h3>Show / hide sections</h3>
+      ${S.map(s=>`<div class="tog-row">
+        <span class="tog-lbl">${s.icon} ${s.title}</span>
+        <label class="tog"><input type="checkbox" ${vis[s.id]?'checked':''} onchange="toggleVis('${s.id}',this.checked)"><span class="tog-sl"></span></label>
+      </div>`).join('')}
+    </div>
+    <div class="set-sec"><h3>Data</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-pri" onclick="exportBackup()">⬇ Export backup</button>
+        <button class="btn-pri" onclick="triggerImport()" style="background:var(--txt2)">⬆ Import backup</button>
+        <button class="btn-danger" onclick="clearAll()">🗑 Clear all data</button>
+      </div>
+    </div>`;
+}
+function qCard(title,opts,key,current){
+  return`<div class="q-card"><h4>${title}</h4><div class="q-opts">
+    ${opts.map(([v,lbl])=>`<button class="q-opt${current===v?' sel':''}" onclick="setPref('${key}','${v}',this)">${lbl}</button>`).join('')}
+  </div></div>`;
+}
+function setPref(key,val,el){
+  el.closest('.q-opts').querySelectorAll('.q-opt').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');const p=getProf();p[key]=val;saveProf(p);
+}
+function applyProfile(){
+  const p=getProf(),v={};S.forEach(s=>{v[s.id]=s.si?s.si(p):true});
+  setVis(v);renderNav();renderSettings(document.getElementById('main'));updateScore();toast();
+}
+function toggleVis(id,checked){const v=getVis();v[id]=checked;setVis(v);renderNav();updateScore()}
+
+// ── ONBOARDING ────────────────────────────────────────────────────────────────
+function obPick(step,val,el){
+  obA[step]=val;el.closest('.ob-opts').querySelectorAll('.ob-opt').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');
+}
+function obNext(){
+  if(obStep<3){
+    document.getElementById('ob-'+obStep).classList.remove('active');obStep++;
+    document.getElementById('ob-'+obStep).classList.add('active');
+    document.querySelectorAll('.ob-dot').forEach((d,i)=>d.classList.toggle('on',i===obStep));
+    if(obStep===3)document.getElementById('ob-btn').textContent='Get started →';
+  } else {
+    const p={living:obA[0]||'own',hasCar:obA[1]||'no',hasPets:obA[2]||'no',hasChildren:obA[3]||'no',onboarded:true};
+    saveProf(p);const v={};S.forEach(s=>{v[s.id]=s.si?s.si(p):true});setVis(v);
+    document.getElementById('ob').classList.add('hidden');go('dashboard');
+  }
+}
+
+// ── EXPORT / IMPORT ───────────────────────────────────────────────────────────
+async function exportBackup(){
+  const blob=new Blob([JSON.stringify({v:4,at:new Date().toISOString(),textData:LS(),files:await dbAll()},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`adulting-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();
+}
+function triggerImport(){document.getElementById('imp-inp').click()}
+async function importBackup(ev){
+  const file=ev.target.files[0];if(!file)return;
+  let bk;try{bk=JSON.parse(await file.text())}catch{alert('Invalid file.');return}
+  if(!confirm('This will overwrite your current data. Continue?'))return;
+  if(bk.textData)SS(bk.textData);
+  if(bk.files?.length){const tx=db.transaction('f','readwrite');const st=tx.objectStore('f');bk.files.forEach(f=>st.put(f));await new Promise(res=>tx.oncomplete=res)}
+  go(view);toast();
+}
+function clearAll(){if(!confirm('Delete ALL data? This cannot be undone.'))return;localStorage.removeItem(K);go('dashboard');toast()}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+const isMobile=()=>window.matchMedia('(max-width:640px)').matches;
+// Set drop zone text based on device
+function setDzText(){
+  const txt=isMobile()?'Tap to upload files':'Drop files or tap to upload';
+  document.querySelectorAll('.dz-txt').forEach(el=>el.textContent=txt);
+}
+initDB().then(()=>{
+  // inject SVG icons into bottom nav
+  [['bni-dashboard','dashboard'],['bni-home','home'],['bni-insurance','insurance'],['bni-emergency','emergency'],['bni-more','more']]
+    .forEach(([elId,iconId])=>{const el=document.getElementById(elId);if(el)el.innerHTML=iconSvg(iconId);});
+  const p=getProf();
+  if(!p.onboarded){document.getElementById('ob').classList.remove('hidden')}
+  else{document.getElementById('ob').classList.add('hidden');go('dashboard')}
+  renderNav();updateScore();
+  setDzText();
+  // re-set dz text whenever sections re-render
+  document.getElementById('main').addEventListener('DOMNodeInserted',setDzText,{passive:true});
+});
+</script>
+
+<!-- PWA: Service worker registration -->
+<script>
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+
+<!-- PWA: Backup safety net for iOS data persistence -->
+<div id="restore-banner" class="hidden" style="position:fixed;inset:0;background:rgba(15,23,42,.85);display:flex;align-items:center;justify-content:center;z-index:300;padding:20px">
+  <div style="background:var(--card);border-radius:14px;padding:28px;max-width:420px;width:100%;text-align:center">
+    <div style="font-size:32px;margin-bottom:10px">📋</div>
+    <h3 style="font-size:17px;font-weight:700;margin-bottom:6px;color:var(--txt)">Your data needs restoring</h3>
+    <p style="font-size:13px;color:var(--txt2);margin-bottom:18px;line-height:1.5">
+      It looks like your browser cleared your saved data. This can happen on iOS after a period of inactivity.<br><br>
+      If you have a backup file, tap below to restore it.
+    </p>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button onclick="triggerRestore()" style="padding:12px;background:var(--acc);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;min-height:44px">Restore from backup</button>
+      <button onclick="dismissRestore()" style="padding:10px;background:none;border:1px solid var(--bdr);border-radius:8px;font-size:13px;color:var(--txt2);cursor:pointer;font-family:inherit;min-height:44px">Start fresh</button>
+    </div>
+    <input type="file" id="restore-inp" accept=".json" style="display:none" onchange="doRestore(event)">
+  </div>
+</div>
+<style>
+#restore-banner.hidden{display:none!important}
+#backup-reminder{position:fixed;bottom:74px;left:16px;right:16px;background:#1e3a5f;color:#fff;padding:12px 16px;border-radius:10px;font-size:13px;z-index:200;display:flex;align-items:center;gap:10px;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+#backup-reminder.hidden{display:none}
+#backup-reminder button{padding:8px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;border:none;min-height:36px;flex-shrink:0}
+@media(min-width:640px){#backup-reminder{left:240px;bottom:16px}}
+</style>
+<div id="backup-reminder" class="hidden">
+  <div style="flex:1">
+    <strong>Protect your data</strong><br>
+    <span style="opacity:.8">Save a backup to keep your info safe.</span>
+  </div>
+  <button onclick="exportBackup();dismissBackupReminder()" style="background:var(--acc);color:#fff">Back up now</button>
+  <button onclick="dismissBackupReminder()" style="background:rgba(255,255,255,.15);color:#fff">Later</button>
+</div>
+<script>
+// Backup safety net: detect data loss and prompt restore
+(function(){
+  const BACKUP_KEY='adulting-backup-reminded';
+  const BACKUP_INTERVAL=7*24*60*60*1000; // 7 days
+
+  // Check if data was wiped (user had onboarded before but data is now empty)
+  function checkDataLoss(){
+    try{
+      const raw=localStorage.getItem('adulting-v4');
+      const data=raw?JSON.parse(raw):{};
+      // If there's a profile that says onboarded, data is fine
+      if(data.__prof?.onboarded)return false;
+      // If there's NO data at all but a backup reminder was set, data was likely wiped
+      const reminded=localStorage.getItem(BACKUP_KEY);
+      if(reminded)return true;
+    }catch{}
+    return false;
+  }
+
+  // Show restore banner if data was lost
+  if(checkDataLoss()){
+    document.getElementById('restore-banner').classList.remove('hidden');
+    document.getElementById('ob').classList.add('hidden');
+  }
+
+  // Show backup reminder after onboarding or if it's been a while
+  function checkBackupReminder(){
+    try{
+      const raw=localStorage.getItem('adulting-v4');
+      const data=raw?JSON.parse(raw):{};
+      if(!data.__prof?.onboarded)return;
+      const lastReminded=localStorage.getItem(BACKUP_KEY);
+      if(!lastReminded){
+        // First time: remind after they've entered some data
+        const hasAnyData=Object.keys(data).some(k=>!k.startsWith('__')&&k!=='vehicles');
+        if(hasAnyData)showBackupReminder();
+      } else {
+        const elapsed=Date.now()-parseInt(lastReminded,10);
+        if(elapsed>BACKUP_INTERVAL)showBackupReminder();
+      }
+    }catch{}
+  }
+
+  function showBackupReminder(){
+    const el=document.getElementById('backup-reminder');
+    if(el)el.classList.remove('hidden');
+  }
+
+  // Check after a short delay so the app has time to render
+  setTimeout(checkBackupReminder,3000);
+})();
+
+function triggerRestore(){document.getElementById('restore-inp').click()}
+function dismissRestore(){document.getElementById('restore-banner').classList.add('hidden')}
+async function doRestore(ev){
+  const file=ev.target.files[0];if(!file)return;
+  let bk;try{bk=JSON.parse(await file.text())}catch{alert('Invalid backup file.');return}
+  if(bk.textData){localStorage.setItem('adulting-v4',JSON.stringify(bk.textData))}
+  if(bk.files?.length&&db){
+    const tx=db.transaction('f','readwrite');const st=tx.objectStore('f');
+    bk.files.forEach(f=>st.put(f));
+    await new Promise(res=>tx.oncomplete=res);
+  }
+  localStorage.setItem('adulting-backup-reminded',String(Date.now()));
+  document.getElementById('restore-banner').classList.add('hidden');
+  toast();
+  go('dashboard');
+}
+function dismissBackupReminder(){
+  localStorage.setItem('adulting-backup-reminded',String(Date.now()));
+  const el=document.getElementById('backup-reminder');
+  if(el)el.classList.add('hidden');
+}
+</script>
+</body>
+</html>
