@@ -750,7 +750,7 @@ function openMore(){
   const items=document.getElementById('ms-items');if(!items)return;
   items.innerHTML=[
     {id:'settings',title:'Settings'},
-    ...S.filter(s=>vis[s.id]&&!BOT_TABS.includes(s.id)).map(s=>({id:s.id,title:s.title}))
+    ...S.filter(s=>vis[s.id]&&!['dashboard','home','insurance'].includes(s.id)).map(s=>({id:s.id,title:s.title}))
   ].map(({id,title})=>`
     <button class="ms-item${view===id?' active':''}" onclick="closeMore();go('${id}')">
       <span class="ms-icon">${iconSvg(id)}</span>${title}
@@ -1091,7 +1091,7 @@ function appendVehicleCard(veh,container){
     </div>`:'';
 
   card.innerHTML=`
-    <div class="ch" id="vch-${veh.id}">
+    <div class="ch collapsed" id="vch-${veh.id}">
       <div style="flex:1;min-width:0">
         <h3 style="margin:0">${headerName}</h3>
         ${metaHtml}
@@ -1101,7 +1101,7 @@ function appendVehicleCard(veh,container){
         <span class="chev" onclick="toggleCard('v${veh.id}')">▼</span>
       </div>
     </div>
-    <div class="cb" id="cb-v${veh.id}">
+    <div class="cb hidden" id="cb-v${veh.id}">
       <div id="veh-inner-${veh.id}"></div>
     </div>`;
   container.appendChild(card);
@@ -1228,7 +1228,7 @@ function renderCard(subId,title,fields,isHid=false){
       </div>`;
   } else if(editMode){
     card.innerHTML=`
-      <div class="ch" id="ch-${subId}" onclick="toggleCard('${subId}')">
+      <div class="ch collapsed" id="ch-${subId}" onclick="toggleCard('${subId}')">
         <h3>${title}</h3>
         <div class="ch-r">
           <button class="btn-hide-sub" onclick="event.stopPropagation();hideBuiltinSub('${subId}')">Hide</button>
@@ -1237,7 +1237,7 @@ function renderCard(subId,title,fields,isHid=false){
         </div>
       </div>
       <div class="cprog"><div class="cprog-fill${pct===100?' full':''}" id="prog-${subId}" style="width:${pct}%"></div></div>
-      <div class="cb" id="cb-${subId}">
+      <div class="cb hidden" id="cb-${subId}">
         <div class="url-row">
           <label>🔗 Website / Login</label>
           <input class="url-inp" type="text" placeholder="Paste login URL…" value="${e(sv.website||'')}"
@@ -1275,12 +1275,12 @@ function renderCard(subId,title,fields,isHid=false){
     const fieldsHtml=(fields?.length||xf.length)?`<div class="vfg">${builtinFieldsHtml}${extraFieldsHtml}</div>`:'';
     const notesHtml=sv.notes?`<div class="vnotes-wrap"><label>Notes</label><div class="vnotes">${e(sv.notes)}</div></div>`:'';
     card.innerHTML=`
-      <div class="ch" id="ch-${subId}" onclick="toggleCard('${subId}')">
+      <div class="ch collapsed" id="ch-${subId}" onclick="toggleCard('${subId}')">
         <h3>${title}</h3>
         <div class="ch-r"><span class="ch-pct${pct===100?' ok':''}">${total?pct+'%':''}</span><span class="chev">▼</span></div>
       </div>
       <div class="cprog"><div class="cprog-fill${pct===100?' full':''}" style="width:${pct}%"></div></div>
-      <div class="cb" id="cb-${subId}">${websiteHtml}${fieldsHtml}${notesHtml}
+      <div class="cb hidden" id="cb-${subId}">${websiteHtml}${fieldsHtml}${notesHtml}
         <div class="fw"><span class="fw-lbl">Documents</span><div class="flist" id="fl-${subId}"></div></div>
       </div>`;
   }
@@ -1328,7 +1328,7 @@ function renderCustomSection(secId,cs){
   const card=document.createElement('div');card.className='card custom-card';card.id='ccard-'+cs.id;
   if(editMode){
     card.innerHTML=`
-      <div class="ch" id="ch-c${cs.id}">
+      <div class="ch collapsed" id="ch-c${cs.id}">
         <h3><input class="card-name-input" value="${e(cs.name)}" placeholder="Section name"
           onclick="event.stopPropagation()" onchange="renameCS('${secId}','${cs.id}',this.value)"></h3>
         <div class="ch-r">
@@ -1336,16 +1336,16 @@ function renderCustomSection(secId,cs){
           <span class="chev" onclick="event.stopPropagation();toggleCard('c${cs.id}')">▼</span>
         </div>
       </div>
-      <div class="cb" id="cb-c${cs.id}">
+      <div class="cb hidden" id="cb-c${cs.id}">
         <div id="cs-inner-${cs.id}"></div>
         <button class="btn-add-inner" onclick="addCSSub('${secId}','${cs.id}')">＋ Add sub-section</button>
       </div>`;
   } else {
     card.innerHTML=`
-      <div class="ch" id="ch-c${cs.id}" onclick="toggleCard('c${cs.id}')">
+      <div class="ch collapsed" id="ch-c${cs.id}" onclick="toggleCard('c${cs.id}')">
         <h3>${e(cs.name)}</h3><div class="ch-r"><span class="chev">▼</span></div>
       </div>
-      <div class="cb" id="cb-c${cs.id}"><div id="cs-inner-${cs.id}"></div></div>`;
+      <div class="cb hidden" id="cb-c${cs.id}"><div id="cs-inner-${cs.id}"></div></div>`;
   }
   document.getElementById('cards').appendChild(card);
   renderCSInner(secId,cs);

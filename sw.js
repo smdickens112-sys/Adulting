@@ -1,4 +1,4 @@
-const CACHE_NAME = 'adulting-v2';
+const CACHE_NAME = 'adulting-v3';
 const ASSETS = [
   './',
   './index.html',
