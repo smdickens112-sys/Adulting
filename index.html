@@ -279,8 +279,12 @@ h2{display:flex;align-items:center}
 .ob-opt.sel{border-color:var(--acc);background:var(--acc-l);color:var(--acc);font-weight:500}
 .ob-hint{font-size:11px;color:var(--txt3);margin-top:4px}
 .ob-sec-list{max-height:340px;overflow-y:auto;margin:8px 0 16px;-webkit-overflow-scrolling:touch}
-.ob-sec-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--bdr)}
+.ob-grp{margin-bottom:6px}
+.ob-grp-hd{display:flex;align-items:center;gap:8px;padding:10px 0 4px;color:var(--acc);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.ob-grp-hd svg{width:18px;height:18px}
+.ob-sec-row{display:flex;align-items:center;gap:10px;padding:9px 0 9px 26px;border-bottom:1px solid var(--bdr)}
 .ob-sec-row:last-child{border-bottom:none}
+.ob-sec-row.ob-sec-top{padding-left:0}
 .ob-sec-icon{width:22px;height:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--acc)}
 .ob-sec-icon svg{width:22px;height:22px}
 .ob-sec-info{flex:1;min-width:0}
@@ -1667,6 +1671,7 @@ function toggleVis(id,checked){const v=getVis();v[id]=checked;setVis(v);renderNa
 
 // ── ONBOARDING ────────────────────────────────────────────────────────────────
 const obVis={};
+const obHidden=new Set();
 function obPick(step,val,el){
   obA[step]=val;
   el.closest('.ob-opts').querySelectorAll('.ob-opt').forEach(b=>b.classList.remove('sel'));
@@ -1679,29 +1684,42 @@ function obPick(step,val,el){
     if(obStep===4)obBuildReview();
   },250);
 }
+function obToggleSub(id,checked){
+  if(checked)obHidden.delete(id);else obHidden.add(id);
+}
 function obBuildReview(){
   const p={living:obA[0]||'own',hasCar:obA[1]||'no',hasPets:obA[2]||'no',hasChildren:obA[3]||'no'};
   const el=document.getElementById('ob-secs');
-  el.innerHTML='';
+  let h='';
   S.forEach(s=>{
-    const on=s.si?s.si(p):true;
-    obVis[s.id]=on;
-    const subs=s.subs?s.subs.filter(sub=>!sub.si||sub.si(p)):[];
-    const detail=s.id==='home'&&subs.length?subs.map(sub=>sub.title).join(', '):'';
-    el.innerHTML+=`
-      <div class="ob-sec-row">
+    const secOn=s.si?s.si(p):true;
+    obVis[s.id]=secOn;
+    if(!secOn)return;
+    if(s.subs&&s.subs.length){
+      const subs=s.subs.filter(sub=>!sub.si||sub.si(p));
+      if(!subs.length)return;
+      h+=`<div class="ob-grp"><div class="ob-grp-hd">${iconSvg(s.id)} ${s.title}</div>`;
+      subs.forEach(sub=>{
+        h+=`<div class="ob-sec-row">
+          <div class="ob-sec-info"><div class="ob-sec-name">${sub.title}</div></div>
+          <label class="tog"><input type="checkbox" checked onchange="obToggleSub('${sub.id}',this.checked)"><span class="tog-sl"></span></label>
+        </div>`;
+      });
+      h+=`</div>`;
+    } else {
+      h+=`<div class="ob-sec-row ob-sec-top">
         <span class="ob-sec-icon">${iconSvg(s.id)}</span>
-        <div class="ob-sec-info">
-          <div class="ob-sec-name">${s.title}</div>
-          ${detail?`<div class="ob-sec-detail">${detail}</div>`:''}
-        </div>
-        <label class="tog"><input type="checkbox" ${on?'checked':''} onchange="obVis['${s.id}']=this.checked"><span class="tog-sl"></span></label>
+        <div class="ob-sec-info"><div class="ob-sec-name">${s.title}</div></div>
+        <label class="tog"><input type="checkbox" checked onchange="obVis['${s.id}']=this.checked"><span class="tog-sl"></span></label>
       </div>`;
+    }
   });
+  el.innerHTML=h;
 }
 function obFinish(){
   const p={living:obA[0]||'own',hasCar:obA[1]||'no',hasPets:obA[2]||'no',hasChildren:obA[3]||'no',onboarded:true};
   saveProf(p);setVis(obVis);
+  if(obHidden.size){const d=LS();d['__hidden_subs']=[...obHidden];SS(d)}
   document.getElementById('ob').classList.add('hidden');go('dashboard');
 }
 
