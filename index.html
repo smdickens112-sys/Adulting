@@ -268,18 +268,27 @@ h2{display:flex;align-items:center}
 /* ONBOARDING */
 #ob{position:fixed;inset:0;background:rgba(15,23,42,.75);display:flex;align-items:center;justify-content:center;z-index:100}
 #ob.hidden{display:none}
-.ob-box{background:#fff;border-radius:14px;padding:30px;max-width:460px;width:90%}
+.ob-box{background:#fff;border-radius:14px;padding:30px;max-width:460px;width:90%;overflow:hidden;position:relative}
 .ob-box h2{font-size:21px;font-weight:800;margin-bottom:3px}
 .ob-box .ob-sub{color:var(--txt2);font-size:13px;margin-bottom:20px}
-.ob-step{display:none}.ob-step.active{display:block}
+.ob-step{display:none;animation:obFadeIn .25s ease}.ob-step.active{display:block}
+@keyframes obFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .ob-q{font-size:14px;font-weight:600;margin-bottom:9px}
-.ob-opts{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}
-.ob-opt{padding:8px 15px;border:2px solid var(--bdr);border-radius:8px;font-size:13px;cursor:pointer;transition:all .15s;background:var(--bg);font-family:inherit}
+.ob-opts{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px}
+.ob-opt{padding:10px 16px;border:2px solid var(--bdr);border-radius:10px;font-size:14px;cursor:pointer;transition:all .15s;background:var(--bg);font-family:inherit;min-height:44px}
 .ob-opt.sel{border-color:var(--acc);background:var(--acc-l);color:var(--acc);font-weight:500}
-.ob-nav{display:flex;justify-content:flex-end}
-.ob-dots{display:flex;gap:5px;justify-content:center;margin-top:12px}
-.ob-dot{width:6px;height:6px;border-radius:50%;background:var(--bdr);transition:background .2s}
-.ob-dot.on{background:var(--acc)}
+.ob-hint{font-size:11px;color:var(--txt3);margin-top:4px}
+.ob-sec-list{max-height:340px;overflow-y:auto;margin:8px 0 16px;-webkit-overflow-scrolling:touch}
+.ob-sec-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--bdr)}
+.ob-sec-row:last-child{border-bottom:none}
+.ob-sec-icon{width:22px;height:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--acc)}
+.ob-sec-icon svg{width:22px;height:22px}
+.ob-sec-info{flex:1;min-width:0}
+.ob-sec-name{font-size:14px;font-weight:600;color:var(--txt)}
+.ob-sec-detail{font-size:11px;color:var(--txt3);margin-top:1px}
+.ob-sec-row .tog{margin-left:auto}
+.ob-finish{width:100%;padding:14px;background:var(--acc);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;min-height:48px}
+.ob-finish:active{background:#2563eb}
 
 /* CUSTOM PROMPT MODAL */
 #cprompt{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;z-index:200;padding-bottom:env(safe-area-inset-bottom,0)}
@@ -369,12 +378,12 @@ h2{display:flex;align-items:center}
   /* Toast */
   #toast{bottom:calc(70px + env(safe-area-inset-bottom,0))}
 
-  /* Onboarding — center properly on mobile */
+  /* Onboarding — bottom sheet on mobile */
   #ob{align-items:flex-end;padding:0 0 env(safe-area-inset-bottom,0)}
-  .ob-box{border-radius:18px 18px 0 0;padding:28px 24px calc(24px + env(safe-area-inset-bottom,0));max-width:100%;width:100%}
+  .ob-box{border-radius:18px 18px 0 0;padding:28px 24px calc(24px + env(safe-area-inset-bottom,0));max-width:100%;width:100%;max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
   .ob-box h2{font-size:22px}
-  .ob-opt{padding:10px 16px;font-size:14px;min-height:44px;display:flex;align-items:center}
-  .ob-nav .btn-pri,.ob-nav button{min-height:48px;padding:12px 20px;font-size:15px;border-radius:10px}
+  .ob-opt{padding:12px 16px;font-size:14px;min-height:48px;display:flex;align-items:center}
+  .ob-sec-list{max-height:none}
 }
 </style>
 </head>
@@ -398,7 +407,7 @@ h2{display:flex;align-items:center}
 <div id="ob">
   <div class="ob-box">
     <h2>Welcome to Adulting 👋</h2>
-    <div class="ob-sub">A few quick questions to personalise your hub.</div>
+    <div class="ob-sub">Tap to personalise your hub.</div>
     <div class="ob-step active" id="ob-0">
       <div class="ob-q">What's your living situation?</div>
       <div class="ob-opts">
@@ -428,10 +437,11 @@ h2{display:flex;align-items:center}
         <button class="ob-opt" onclick="obPick(3,'no',this)">✕ No</button>
       </div>
     </div>
-    <div class="ob-nav"><button class="btn-pri" id="ob-btn" onclick="obNext()">Next →</button></div>
-    <div class="ob-dots">
-      <div class="ob-dot on" id="od-0"></div><div class="ob-dot" id="od-1"></div>
-      <div class="ob-dot" id="od-2"></div><div class="ob-dot" id="od-3"></div>
+    <div class="ob-step" id="ob-4">
+      <div class="ob-q">Here's what we'll set up for you</div>
+      <div class="ob-hint">Toggle off anything you don't need</div>
+      <div class="ob-sec-list" id="ob-secs"></div>
+      <button class="ob-finish" onclick="obFinish()">Let's go →</button>
     </div>
   </div>
 </div>
@@ -1656,20 +1666,43 @@ function applyProfile(){
 function toggleVis(id,checked){const v=getVis();v[id]=checked;setVis(v);renderNav();updateScore()}
 
 // ── ONBOARDING ────────────────────────────────────────────────────────────────
+const obVis={};
 function obPick(step,val,el){
-  obA[step]=val;el.closest('.ob-opts').querySelectorAll('.ob-opt').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');
+  obA[step]=val;
+  el.closest('.ob-opts').querySelectorAll('.ob-opt').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+  setTimeout(()=>{
+    document.getElementById('ob-'+obStep).classList.remove('active');
+    obStep++;
+    const next=document.getElementById('ob-'+obStep);
+    next.classList.add('active');
+    if(obStep===4)obBuildReview();
+  },250);
 }
-function obNext(){
-  if(obStep<3){
-    document.getElementById('ob-'+obStep).classList.remove('active');obStep++;
-    document.getElementById('ob-'+obStep).classList.add('active');
-    document.querySelectorAll('.ob-dot').forEach((d,i)=>d.classList.toggle('on',i===obStep));
-    if(obStep===3)document.getElementById('ob-btn').textContent='Get started →';
-  } else {
-    const p={living:obA[0]||'own',hasCar:obA[1]||'no',hasPets:obA[2]||'no',hasChildren:obA[3]||'no',onboarded:true};
-    saveProf(p);const v={};S.forEach(s=>{v[s.id]=s.si?s.si(p):true});setVis(v);
-    document.getElementById('ob').classList.add('hidden');go('dashboard');
-  }
+function obBuildReview(){
+  const p={living:obA[0]||'own',hasCar:obA[1]||'no',hasPets:obA[2]||'no',hasChildren:obA[3]||'no'};
+  const el=document.getElementById('ob-secs');
+  el.innerHTML='';
+  S.forEach(s=>{
+    const on=s.si?s.si(p):true;
+    obVis[s.id]=on;
+    const subs=s.subs?s.subs.filter(sub=>!sub.si||sub.si(p)):[];
+    const detail=s.id==='home'&&subs.length?subs.map(sub=>sub.title).join(', '):'';
+    el.innerHTML+=`
+      <div class="ob-sec-row">
+        <span class="ob-sec-icon">${iconSvg(s.id)}</span>
+        <div class="ob-sec-info">
+          <div class="ob-sec-name">${s.title}</div>
+          ${detail?`<div class="ob-sec-detail">${detail}</div>`:''}
+        </div>
+        <label class="tog"><input type="checkbox" ${on?'checked':''} onchange="obVis['${s.id}']=this.checked"><span class="tog-sl"></span></label>
+      </div>`;
+  });
+}
+function obFinish(){
+  const p={living:obA[0]||'own',hasCar:obA[1]||'no',hasPets:obA[2]||'no',hasChildren:obA[3]||'no',onboarded:true};
+  saveProf(p);setVis(obVis);
+  document.getElementById('ob').classList.add('hidden');go('dashboard');
 }
 
 // ── EXPORT / IMPORT ───────────────────────────────────────────────────────────
